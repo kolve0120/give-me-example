@@ -1,104 +1,190 @@
+import { useState, useEffect } from "react";
+import { StoreHeader } from "@/components/StoreHeader";
+import { CustomerSelect } from "@/components/CustomerSelect";
+import { ProductSelect } from "@/components/ProductSelect";
+import { SalesProductList } from "@/components/SalesProductList";
+import { useStore } from "@/hooks/useStore";
 import { Button } from "@/components/ui/button";
-import { FeatureCard } from "@/components/FeatureCard";
-import { StatCard } from "@/components/StatCard";
-import { Zap, Shield, Sparkles, ArrowRight } from "lucide-react";
-import heroBg from "@/assets/hero-bg.jpg";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Users, ShoppingCart, Package, X } from "lucide-react";
+import { NotificationModal } from "@/components/NotificationModal";
 
 const Index = () => {
+  const {
+    expandedComponent,
+    setExpandedComponent,
+    showSuccessModal,
+    setShowSuccessModal,
+    clearAll,
+    salesItems,
+    selectedCustomer,
+    setProductSidebarOpen,
+  } = useStore();
+  
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+  const [activeComponent, setActiveComponent] = useState<string | null>(null);
+
+  // 檢查是否有未完成的資料
+  useEffect(() => {
+    const hasData = salesItems.length > 0 || selectedCustomer !== null;
+    if (hasData) {
+      setShowRestoreDialog(true);
+    }
+  }, []); // 只在初次載入時執行
+
+  // 處理保留資料
+  const handleKeepData = () => {
+    setShowRestoreDialog(false);
+  };
+
+  // 處理清除資料
+  const handleClearData = () => {
+    clearAll();
+    setShowRestoreDialog(false);
+  };
+
+  // 關閉成功模態框並清空資料
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    clearAll();
+  };
+
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage: `url(${heroBg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            opacity: 0.15
-          }}
-        />
-        <div className="absolute inset-0 bg-[var(--gradient-hero)] z-0" />
-        
-        <div className="container mx-auto px-4 z-10 text-center animate-fade-in">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 max-w-4xl mx-auto leading-tight">
-            打造您的
-            <span className="text-gradient"> 數位未來</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            創新、快速、可靠的現代化解決方案，助您實現無限可能
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button variant="hero" size="lg" className="group">
-              立即開始
-              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button variant="outline" size="lg">
-              了解更多
-            </Button>
-          </div>
-        </div>
-      </section>
+    <div className="min-h-screen bg-gradient-elegant">
+      <div className="container mx-auto px-4 py-6 max-w-[1920px]">
+        {/* 頂部標題列 */}
+        <StoreHeader />
 
-      {/* Features Section */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16 animate-slide-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">核心優勢</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              我們提供最先進的技術和最優質的服務
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <FeatureCard
-              icon={Zap}
-              title="極速性能"
-              description="優化的架構確保極速響應，提供流暢的使用體驗"
-            />
-            <FeatureCard
-              icon={Shield}
-              title="安全可靠"
-              description="企業級安全保護，確保您的數據和隱私安全無虞"
-            />
-            <FeatureCard
-              icon={Sparkles}
-              title="創新設計"
-              description="現代化的用戶界面，帶來耳目一新的視覺體驗"
-            />
-          </div>
-        </div>
-      </section>
+        {/* 主要內容區域 */}
+        <div className="space-y-6">
+          {/* 桌面版：顯示所有組件 */}
+          <div className="hidden md:grid md:grid-rows-[auto_auto] gap-6 max-w-screen-2xl mx-auto">
 
-      {/* Stats Section */}
-      <section className="py-20 bg-card">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            <StatCard value="99.9%" label="穩定運行" />
-            <StatCard value="10K+" label="活躍用戶" />
-            <StatCard value="50+" label="企業客戶" />
-            <StatCard value="24/7" label="技術支援" />
+            <CustomerSelect />
+            <SalesProductList />
           </div>
-        </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center glass rounded-3xl p-12 border border-border animate-slide-up">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              準備好開始了嗎？
-            </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              立即加入我們，體驗數位轉型帶來的全新可能性
-            </p>
-            <Button variant="hero" size="lg" className="group">
-              免費試用
-              <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
+          {/* 手機版：根據選擇顯示組件 */}
+          <div className="md:hidden space-y-4">
+            {activeComponent === null && (
+              <div className="grid grid-rows-3 gap-4">
+                <Card
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader 
+                    className="pb-4 cursor-pointer"
+                    onClick={() => setActiveComponent("customer")}
+                  >
+                    <CardTitle className="flex flex-col items-center gap-2 text-center">
+                      <Users className="w-8 h-8" />
+                      <span className="text-sm whitespace-pre-line leading-tight">
+                        {"客\n戶\n資\n訊"}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader 
+                    className="pb-4 cursor-pointer"
+                    onClick={() => setActiveComponent("sales")}
+                  >
+                    <CardTitle className="flex flex-col items-center gap-2 text-center">
+                      <ShoppingCart className="w-8 h-8" />
+                      <span className="text-sm whitespace-pre-line leading-tight">
+                        {"銷\n售\n清\n單"}
+                      </span>
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+                <Card
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader 
+                    className="pb-4 cursor-pointer"
+                    onClick={() => setProductSidebarOpen(true)}
+                  >
+                    <CardTitle className="flex flex-col items-center gap-2 text-center">
+                      <Package className="w-8 h-8" />
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
+              </div>
+            )}
+
+            {activeComponent === "customer" && (
+              <div className="animate-fade-in">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveComponent(null)}
+                  className="mb-4"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  返回
+                </Button>
+                <CustomerSelect />
+              </div>
+            )}
+
+            {activeComponent === "sales" && (
+              <div className="animate-fade-in">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveComponent(null)}
+                  className="mb-4"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  返回
+                </Button>
+                <SalesProductList />
+              </div>
+            )}
           </div>
         </div>
-      </section>
+
+        {/* 產品選擇 Sidebar */}
+        <ProductSelect />
+
+        {/* 恢復資料對話框 */}
+        <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>發現未完成的資料</AlertDialogTitle>
+              <AlertDialogDescription>
+                系統偵測到您有未完成的訂單資料，是否要繼續編輯？
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={handleClearData}>
+                清除資料
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={handleKeepData}>
+                繼續編輯
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* 成功提交模態框（抽成元件） */}
+        <NotificationModal />
+
+        {/* 頁腳資訊 */}
+        <footer className="mt-12 text-center text-sm text-muted-foreground">
+          <p>店家管理系統 • 現代化響應式介面</p>
+        </footer>
+      </div>
     </div>
   );
 };
