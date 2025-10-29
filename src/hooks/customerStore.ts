@@ -1,14 +1,7 @@
 // @/hooks/customerStore.ts
 import { StateCreator } from 'zustand';
 import { fetchCustomers } from '@/services/googleSheetsApi';
-
-export interface Customer {
-  id?: string;
-  name: string;
-  code: string;
-  storeName?: string;
-  chainStoreName?: string;
-}
+import { Customer } from '@/types';
 
 export interface CustomerSlice {
   // State

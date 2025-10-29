@@ -1,23 +1,7 @@
-// src/hooks/useOrderStore.ts
+// src/hooks/orderStore.ts
 import { StateCreator } from "zustand";
 import { fetchOrders, GoogleSheetsOrder } from "@/services/googleSheetsApi";
-import { Customer } from "./customerStore";
-
-export interface OrderInfo {
-  date: string;
-  serialNumber: string;
-  paperSerialNumber?: string;
-  customer: Customer;
-  priceDistribution?: number;
-  status?: string;
-}
-
-export interface Order {
-  id: string;
-  orderInfo: OrderInfo;
-  customer :Customer;
-  items: any[];
-}
+import { Customer, Order, OrderInfo } from "@/types";
 
 export interface OrderSlice {
   orders: Order[];

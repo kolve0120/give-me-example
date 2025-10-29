@@ -1,12 +1,6 @@
 // @/hooks/salesStore.ts
 import { StateCreator } from 'zustand';
-import { Product } from './productStore';
-
-export interface SalesItem extends Product {
-  quantity: number;
-  totalPrice: number;
-  time: number;
-}
+import { Product, SalesItem } from '@/types';
 
 export interface SalesSlice {
   // State

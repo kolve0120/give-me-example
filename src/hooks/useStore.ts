@@ -8,10 +8,7 @@ import { OrderSlice, createOrderSlice } from './orderStore';
 import { UISlice, createUISlice } from './uiStore';
 
 // 重新導出類型,讓其他檔案可以直接從 useStore 導入
-export type { Customer } from './customerStore';
-export type { Product } from './productStore';
-export type { SalesItem } from './salesStore';
-export type { OrderInfo } from './orderStore';
+export type { Customer, Product, SalesItem, Order, OrderInfo } from '@/types';
 
 // 組合所有 slice
 type StoreState = CustomerSlice & 
