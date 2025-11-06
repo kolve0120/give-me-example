@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwGBJzxjPzCrKFPcRotxBjget4W_8BnQRGwD2mxX9lg190VWdHcPOx1eywaOe_YfOZr/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbz1RTDt7Xo1utAZD84Jm39g_Zb5R8YRKs5NrpgHswuYahDpfs7RM666cKzZTI13mj84/exec";
 
 export interface GoogleSheetsProduct {
   productId: string;
@@ -37,9 +37,26 @@ export interface GoogleSheetsSale {
 }
 
 export interface GoogleSheetsOrder {
+  itemId: number;
+  productCode: any;
+  series: string;
+  vendor: string;
+  remark: string;
+  tableTitle: string;
+  tableRowTitle: string;
+  tableColTitle: string;
+  priceRetail: number;
+  state: string;
+  customerId: string;
+  storeName: string;
+  chainStoreName: string;
+  paperSerialNumber: string;
+  orderInfo: any;
+  priceDistribution: number;
   orderId: string;
   orderDate: string;
   customer: string;
+  customerCode: string;
   brand: string;
   productId: string;
   productName: string;

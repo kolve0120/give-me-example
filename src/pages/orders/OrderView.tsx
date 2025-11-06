@@ -31,8 +31,8 @@ export const OrderView = ({ filteredOrders, onEdit, onStatusChange }: OrderViewP
   return (
     <Accordion type="multiple" className="space-y-2">
       {filteredOrders.map((order: any) => {
-        const totalQty = order.items?.reduce((s: number, i: any) => s + i.quantity, 0) || 0;
-        const totalAmt = order.items?.reduce((s: number, i: any) => s + i.totalPrice, 0) || 0;
+        const totalQty = order.items?.reduce((s: number, i: any) => s + Number(i.quantity), 0) || 0;
+        const totalAmt = order.items?.reduce((s: number, i: any) => s + Number(i.totalPrice), 0) || 0;
 
         return (
           <AccordionItem

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useStore } from "@/hooks/useStore";
 import { useTabStore } from "@/stores/tabStore";
+import {useOrderFormStore} from "@/stores/orderFormStore"
 import {
   Package,
   X,
@@ -15,8 +16,10 @@ import { toast } from "sonner";
 import { ProductSearchFilters } from "./ProductSearchFilters";
 import { ProductGridView } from "./ProductGridView";
 import { ProductTableView } from "./ProductTableView";
-
-export const ProductSelect = () => {
+interface ProductSelectProps {
+  tabId: string;
+}
+export const ProductSelect = ({ tabId }: ProductSelectProps) => {
   // 產品列表從全域 store  
   const {
     products,

@@ -55,20 +55,22 @@ export const BatchShipment = ({
       {customerGroups.map((group) => {
         const groupAllSelected = isGroupAllSelected(group);
         return (
-          <AccordionItem
-            key={group.customer}
-            value={group.customer}
-            className="border-2 rounded-lg overflow-hidden shadow-sm border-amber-300 bg-amber-50/30"
-          >
-            <AccordionTrigger className="px-4 py-3 bg-amber-100 hover:bg-amber-200">
+        <AccordionItem
+          key={group.customer}
+          value={group.customer}
+          className="border-2 rounded-lg overflow-hidden shadow-sm border-amber-300 bg-amber-50/30"
+        >
+          <div className="flex items-center bg-amber-100 px-4 py-3">
+            <Checkbox
+              checked={groupAllSelected}
+              onCheckedChange={(checked) => handleSelectAll(group, Boolean(checked))}
+              className="mr-3"
+            />
+
+            <AccordionTrigger className="flex-1 hover:bg-amber-200 rounded px-2">
               <div className="flex justify-between w-full pr-4 items-center">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={groupAllSelected}
-                    onCheckedChange={(checked) => handleSelectAll(group, Boolean(checked))}
-                  />
-                  <span className="font-semibold text-lg">{group.customer}</span>
-                </div>
+                <span className="font-semibold text-lg">{group.customer}</span>
+
                 <div className="flex gap-6 text-sm text-muted-foreground">
                   <span>總數量：<strong>{group.totalQty}</strong></span>
                   <span>
@@ -77,6 +79,7 @@ export const BatchShipment = ({
                 </div>
               </div>
             </AccordionTrigger>
+          </div>
 
             <AccordionContent className="bg-white">
               <Table>

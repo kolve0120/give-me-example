@@ -41,33 +41,75 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
 
   setOrders: (orders) => set({ orders }),
 
-  loadOrdersFromApi: async () => {
-    set({ isLoadingOrders: true });
-    try {
-      const sheetOrders = await fetchOrders();
-      const formattedOrders: Order[] = sheetOrders.map((o) => ({
-        id: String(o.orderId),
+loadOrdersFromApi: async () => {
+  set({ isLoadingOrders: true });
+
+  try {
+    const sheetOrders = await fetchOrders();
+    console.log("api 原始資料", sheetOrders);
+
+    // 依 serialNumber 分組
+    const orderMap: Record<string, Order> = {};
+    console.log("✅ 開始合併訂單資料...",sheetOrders);
+    sheetOrders.forEach((o) => {
+      const serialNumber = String(o.orderId);
+
+      // 整理 item（依你的正式格式）
+      const item = {
+        id: o.itemId ?? Date.now(), // 若沒有 id 就給時間戳
+        code: o.productCode,
+        name: o.brand+" "+o.series+"_"+o.vendor+"_"+o.remark,
+        series: o.series ?? "",
+        vendor: o.vendor ?? "",
+        remark: o.remark ?? "",
+        model: o.productModel,
+        tableTitle: o.tableTitle ?? "",
+        tableRowTitle: o.tableRowTitle ?? "",
+        tableColTitle: o.tableColTitle ?? "",
+        priceRetail: o.priceRetail ?? 0,
+        priceDistribution: o.priceDistribution ?? 0,
+        state: o.state ?? "啟用",
+        quantity: o.unshippedQty ?? 1,
+        totalPrice: (o.unshippedQty ?? 1) * (o.priceDistribution ?? 0),
+        time: Date.now(),
+      };
+
+      // ✅ 已存在 → push item
+      if (orderMap[serialNumber]) {
+        orderMap[serialNumber].items.push(item);
+        return;
+      }
+
+      // ✅ 不存在 → 建立完整訂單格式
+      orderMap[serialNumber] = {
+        id: String(o.rowNumber) + "_" + serialNumber,
+        customer: {
+          id: o.customerId ?? "",
+          name: o.customer ?? "",
+          code: o.customerCode ?? "",
+          storeName: o.storeName ?? "",
+          chainStoreName: o.chainStoreName ?? "",
+        },
+        items: [item],
         orderInfo: {
           date: o.orderDate,
-          serialNumber: o.orderId,
+          serialNumber,
+          paperSerialNumber: o.paperSerialNumber ?? "",
           status: "待處理",
-          customer: { name: o.orderInfo.customer },
-        },
-        items: [
-          {
-            name: o.productName,
-            model: o.productModel,
-            quantity: o.unshippedQty,
-            priceDistribution: o.priceDistribution || 0,
-            totalPrice: o.unshippedQty * (o.priceDistribution || 0),
-          },
-        ],
-      }));
+        }
+      };
+    });
 
-      set({ orders: formattedOrders, isLoadingOrders: false });
-    } catch (error) {
-      console.error("❌ Failed to load orders:", error);
-      set({ isLoadingOrders: false });
-    }
-  },
+    const formattedOrders = Object.values(orderMap);
+    console.log("✅ 合併後訂單資料：", formattedOrders);
+
+    set({ orders: formattedOrders, isLoadingOrders: false });
+
+  } catch (error) {
+    console.error("❌ 取得訂單失敗:", error);
+    set({ isLoadingOrders: false });
+  }
+},
+
+
 });

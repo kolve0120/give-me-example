@@ -49,7 +49,7 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
     
     // TODO: 這裡應該保存到數據庫
     // await saveOrderToDatabase(orderToSave);
-    
+    console.log("savedOrders",savedOrders)
     toast.success("訂單已提交");
     clearOrderData(tabId);
     closeTab(tabId);
