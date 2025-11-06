@@ -168,23 +168,18 @@ export const useTabStore = create<TabStoreState>()(
         return tab?.orderData || null;
       },
 
-      updateOrderData: (tabId, data) => {
-        const { tabs } = get();
-        const updatedTabs = tabs.map(tab => {
-          if (tab.id === tabId && tab.orderData) {
-            return {
-              ...tab,
-              orderData: {
-                ...tab.orderData,
-                ...data,
-                orderInfo: data.orderInfo ? { ...tab.orderData.orderInfo, ...data.orderInfo } : tab.orderData.orderInfo,
-              },
-            };
-          }
-          return tab;
-        });
-        set({ tabs: updatedTabs });
-      },
+      updateOrderData: (tabId, updates) => set((state) => {
+        const tab = state.tabs.find(t => t.id === tabId);
+        if (!tab) return state;
+
+        return {
+          tabs: state.tabs.map(t =>
+            t.id === tabId
+              ? { ...t, orderData: { ...t.orderData, ...updates } }
+              : t
+          ),
+        };
+      }),
 
       clearOrderData: (tabId) => {
         const { tabs } = get();

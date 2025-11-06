@@ -74,94 +74,10 @@ const Index = () => {
 
         {/* 主要內容區域 */}
         <div className="space-y-6">
-          {/* 桌面版：顯示所有組件 */}
-          <div className="hidden md:grid md:grid-rows-[auto_auto] gap-6 max-w-screen-2xl mx-auto">
-
-            <CustomerSelect />
-            <SalesProductList />
           </div>
 
-          {/* 手機版：根據選擇顯示組件 */}
-          <div className="md:hidden space-y-4">
-            {activeComponent === null && (
-              <div className="grid grid-rows-3 gap-4">
-                <Card
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                >
-                  <CardHeader 
-                    className="pb-4 cursor-pointer"
-                    onClick={() => setActiveComponent("customer")}
-                  >
-                    <CardTitle className="flex flex-col items-center gap-2 text-center">
-                      <Users className="w-8 h-8" />
-                      <span className="text-sm whitespace-pre-line leading-tight">
-                        {"客\n戶\n資\n訊"}
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
-                <Card
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                >
-                  <CardHeader 
-                    className="pb-4 cursor-pointer"
-                    onClick={() => setActiveComponent("sales")}
-                  >
-                    <CardTitle className="flex flex-col items-center gap-2 text-center">
-                      <ShoppingCart className="w-8 h-8" />
-                      <span className="text-sm whitespace-pre-line leading-tight">
-                        {"銷\n售\n清\n單"}
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
-                <Card
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                >
-                  <CardHeader 
-                    className="pb-4 cursor-pointer"
-                    onClick={() => setProductSidebarOpen(true)}
-                  >
-                    <CardTitle className="flex flex-col items-center gap-2 text-center">
-                      <Package className="w-8 h-8" />
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
-              </div>
-            )}
+ 
 
-            {activeComponent === "customer" && (
-              <div className="animate-fade-in">
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveComponent(null)}
-                  className="mb-4"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  返回
-                </Button>
-                <CustomerSelect />
-              </div>
-            )}
-
-            {activeComponent === "sales" && (
-              <div className="animate-fade-in">
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveComponent(null)}
-                  className="mb-4"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  返回
-                </Button>
-                <SalesProductList />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 產品選擇 Sidebar */}
-        <ProductSelect />
 
         {/* 恢復資料對話框 */}
         <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>

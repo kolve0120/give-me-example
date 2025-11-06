@@ -16,7 +16,11 @@ import { ProductSearchFilters } from "./ProductSearchFilters";
 import { ProductGridView } from "./ProductGridView";
 import { ProductTableView } from "./ProductTableView";
 
-export const ProductSelect = () => {
+interface ProductSelectProps {
+  tabId?: string; // 可選，用於多 tab 場景
+}
+
+export const ProductSelect = ({ tabId }: ProductSelectProps) => {
   // 產品列表從全域 store  
   const {
     products,
@@ -26,11 +30,11 @@ export const ProductSelect = () => {
     setProductSidebarOpen,
   } = useStore();
   
-  // 訂單相關從訂單表單 store
-  const {
-    addSalesItem,
-    selectedCustomer,
-  } = useOrderFormStore();
+  // 訂單相關從 tab store
+  const { getOrderData, updateOrderData } = useTabStore();
+  const orderData = tabId ? getOrderData(tabId) : null;
+  const selectedCustomer = orderData?.selectedCustomer;
+  const salesItems = orderData?.salesItems || [];
   
   useEffect(() => {
     if (products.length === 0) {
@@ -40,13 +44,13 @@ export const ProductSelect = () => {
 
   const [quickSearch, setQuickSearch] = useState("");
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
-  const [selectedModels, setSelectedModels] = useState<string[]>([]); // ✅ 修正命名
+  const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [selectedSeries, setSelectedSeries] = useState<string[]>([]);
   const [selectedRemarks, setSelectedRemarks] = useState<string[]>([]);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
-  // ✅ 全雙向交互過濾基礎函數
+  // 基礎過濾函數
   const getBaseFilteredProducts = useCallback((excludeField?: string) => {
     return products.filter((product) => {
       const conditions: Record<string, string[]> = {
@@ -56,12 +60,10 @@ export const ProductSelect = () => {
         remark: selectedRemarks,
       };
       
-      // 排除指定欄位，用於計算該欄位的可用選項
       if (excludeField) {
         delete conditions[excludeField];
       }
       
-      // 檢查所有其他條件
       return Object.entries(conditions).every(([key, values]) => {
         if (!values || values.length === 0) return true;
         return values.includes(String(product[key as keyof typeof product]));
@@ -69,14 +71,13 @@ export const ProductSelect = () => {
     });
   }, [products, selectedVendors, selectedModels, selectedSeries, selectedRemarks]);
 
-  // ✅ 動態唯一選項（全雙向交互）
+  // 動態唯一選項
   const uniqueVendors = useMemo(() => {
     if (isLoadingProducts) return [];
     const filtered = getBaseFilteredProducts('vendor');
     return Array.from(new Set(filtered.map(p => p.vendor || '')))
       .filter(Boolean)
       .sort((a, b) => {
-        // 按數量排序（選項越多的越前面）
         const countA = filtered.filter(p => p.vendor === a).length;
         const countB = filtered.filter(p => p.vendor === b).length;
         return countB - countA;
@@ -119,7 +120,7 @@ export const ProductSelect = () => {
       });
   }, [getBaseFilteredProducts, isLoadingProducts]);
 
-  // ✅ 最終產品篩選（所有條件都要滿足）
+  // 最終產品篩選
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       // 快速搜尋
@@ -153,7 +154,7 @@ export const ProductSelect = () => {
     selectedRemarks,
   ]);
 
-  // ✅ 清除所有篩選
+  // 清除所有篩選
   const clearAllFilters = useCallback(() => {
     setQuickSearch("");
     setSelectedVendors([]);
@@ -162,17 +163,35 @@ export const ProductSelect = () => {
     setSelectedRemarks([]);
   }, []);
 
-  // ✅ 處理選擇產品
+  // 處理選擇產品
   const handleSelectProduct = useCallback((product: any, quantity: number = 1) => {
+    if (!tabId) {
+      toast.error("無法添加產品：缺少 tabId");
+      return;
+    }
+
     if (!selectedCustomer) {
       toast.error("請先在「客戶資訊」區域選擇客戶");
       return;
     }
-    addSalesItem(product, quantity);
-    toast.success(`已添加 ${product.name} x ${quantity}`);
-  }, [selectedCustomer, addSalesItem]);
 
-  // ✅ 活躍篩選數量
+    const price = product.priceDistribution || product.priceRetail;
+    const newItem = {
+      ...product,
+      quantity,
+      priceDistribution: price,
+      totalPrice: quantity * price,
+      time: Date.now(),
+    };
+
+    updateOrderData(tabId, {
+      salesItems: [...salesItems, newItem]
+    });
+
+    toast.success(`已添加 ${product.name} x ${quantity}`);
+  }, [tabId, selectedCustomer, salesItems, updateOrderData]);
+
+  // 活躍篩選數量
   const activeFilterCount = useMemo(() => 
     selectedVendors.length + selectedModels.length + 
     selectedSeries.length + selectedRemarks.length, 
@@ -248,7 +267,7 @@ export const ProductSelect = () => {
                 selectedVendors={selectedVendors}
                 setSelectedVendors={setSelectedVendors}
                 selectedModels={selectedModels}
-                setSelectedModels={setSelectedModels} // ✅ 修正傳遞
+                setSelectedModels={setSelectedModels}
                 selectedSeries={selectedSeries}
                 setSelectedSeries={setSelectedSeries}
                 selectedRemarks={selectedRemarks}

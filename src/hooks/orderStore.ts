@@ -45,6 +45,7 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
     set({ isLoadingOrders: true });
     try {
       const sheetOrders = await fetchOrders();
+      console.log("api資料",sheetOrders)
       const formattedOrders: Order[] = sheetOrders.map((o) => ({
         id: String(o.orderId),
         orderInfo: {

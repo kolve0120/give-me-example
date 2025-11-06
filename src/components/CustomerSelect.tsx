@@ -1,3 +1,4 @@
+// CustomerSelect.tsx
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,7 +55,6 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
       });
       setShowStoreDetails(Boolean(selectedCustomer.storeName || selectedCustomer.chainStoreName));
     } else {
-      // 當 selectedCustomer 被清除時，同步重置本地表單狀態
       setCustomerForm({
         name: "",
         code: "",
@@ -75,7 +75,9 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
     const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
     const serialNumber = `SL${customerCode}${dateStr}${randomNum}`;
     
-    updateOrderData(tabId, { orderInfo: { ...orderInfo, serialNumber } });
+    updateOrderData(tabId, { 
+      orderInfo: { ...orderInfo, serialNumber } 
+    });
   };
 
   // 顯示建議
@@ -165,9 +167,7 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
     setCustomerForm(prev => ({ ...prev, [field]: value }));
     
     if (field === 'name' || field === 'code') {
-      const customer = customers.find(c => 
-        c[field] === value
-      );
+      const customer = customers.find(c => c[field] === value);
       if (customer) {
         selectCustomer(customer);
       }
@@ -241,7 +241,9 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
               value={orderInfo?.date || ''}
               onChange={(e) => {
                 if (orderInfo) {
-                  updateOrderData(tabId, { orderInfo: { ...orderInfo, date: e.target.value } });
+                  updateOrderData(tabId, { 
+                    orderInfo: { ...orderInfo, date: e.target.value } 
+                  });
                   generateSerialNumber();
                 }
               }}
@@ -257,7 +259,9 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
             <Input
               id="serialNumber"
               value={orderInfo?.serialNumber || ''}
-              onChange={(e) => orderInfo && updateOrderData(tabId, { orderInfo: { ...orderInfo, serialNumber: e.target.value } })}
+              onChange={(e) => orderInfo && updateOrderData(tabId, { 
+                orderInfo: { ...orderInfo, serialNumber: e.target.value } 
+              })}
               placeholder="自動生成或手動輸入"
               className="input-elegant"
             />
@@ -268,7 +272,9 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
             <Input
               id="paperSerialNumber"
               value={orderInfo?.paperSerialNumber || ""}
-              onChange={(e) => orderInfo && updateOrderData(tabId, { orderInfo: { ...orderInfo, paperSerialNumber: e.target.value } })}
+              onChange={(e) => orderInfo && updateOrderData(tabId, { 
+                orderInfo: { ...orderInfo, paperSerialNumber: e.target.value } 
+              })}
               placeholder="紙本流水號"
               className="input-elegant"
             />
@@ -395,24 +401,6 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
             </div>
           </div>
         )}
-
-        {/* 選中的客戶資訊 
-        {selectedCustomer && (
-          <div className="mt-4 p-4 bg-accent/20 rounded-lg animate-fade-in">
-            <h4 className="font-medium text-primary mb-2">當前選擇的客戶</h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>客戶名稱: <span className="font-medium">{selectedCustomer.name}</span></div>
-              <div>客戶編號: <span className="font-medium">{selectedCustomer.code}</span></div>
-              {selectedCustomer.chainStoreName && (
-                <div>連鎖店名: <span className="font-medium">{selectedCustomer.chainStoreName}</span></div>
-              )}
-              {selectedCustomer.storeName && (
-                <div>店家名稱: <span className="font-medium">{selectedCustomer.storeName}</span></div>
-              )}
-            </div>
-          </div>
-        )}
-        */}
       </CardContent>
     </Card>
   );

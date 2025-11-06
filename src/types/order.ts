@@ -1,3 +1,4 @@
+/*types/order.ts*/
 import { Customer } from './customer';
 
 export interface OrderInfo {
@@ -13,5 +14,15 @@ export interface Order {
   id: string;
   orderInfo: OrderInfo;
   customer: Customer;
-  items: any[];
+  items: OrderItem[];
+}
+
+export interface OrderItem {
+  name: string;
+  model: string;
+  code: string;
+  quantity: number;
+  priceDistribution: number;
+  totalPrice: number;
+  remark?: string;
 }

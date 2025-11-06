@@ -16,7 +16,7 @@ interface OrderFormProps {
 export const OrderForm = ({ tabId }: OrderFormProps) => {
   const { getOrderData, updateOrderData, clearOrderData, closeTab } = useTabStore();
   const orderData = getOrderData(tabId);
-
+  console.log("OrderForm 訂單數據", orderData); 
   const handleSubmitOrder = () => {
     if (!orderData?.selectedCustomer) {
       toast.error("請先選擇客戶");
@@ -46,7 +46,7 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
     const savedOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
     savedOrders.push(orderToSave);
     localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
-    
+    console.log("訂單",savedOrders)
     // TODO: 這裡應該保存到數據庫
     // await saveOrderToDatabase(orderToSave);
     
