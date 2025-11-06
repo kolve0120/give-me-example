@@ -4,6 +4,7 @@ import { CustomerSelect } from "@/components/CustomerSelect";
 import { ProductSelect } from "@/components/ProductSelect";
 import { SalesProductList } from "@/components/SalesProductList";
 import { useStore } from "@/hooks/useStore";
+import { useOrderFormStore } from "@/stores/orderFormStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -21,16 +22,21 @@ import { Users, ShoppingCart, Package, X } from "lucide-react";
 import { NotificationModal } from "@/components/NotificationModal";
 
 const Index = () => {
+  // UI 狀態從全域 store
   const {
     expandedComponent,
     setExpandedComponent,
     showSuccessModal,
     setShowSuccessModal,
-    clearAll,
-    salesItems,
-    selectedCustomer,
     setProductSidebarOpen,
   } = useStore();
+  
+  // 訂單表單狀態從專用 store
+  const {
+    salesItems,
+    selectedCustomer,
+    clearAll,
+  } = useOrderFormStore();
   
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
   const [activeComponent, setActiveComponent] = useState<string | null>(null);

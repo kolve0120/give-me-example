@@ -2,9 +2,11 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
+import { useOrderFormStore } from "@/stores/orderFormStore";
 
 export const NotificationModal = () => {
-  const { showSuccessModal, setShowSuccessModal, clearAll } = useStore();
+  const { showSuccessModal, setShowSuccessModal } = useStore();
+  const { clearAll } = useOrderFormStore();
 
   const handleClose = () => {
     setShowSuccessModal(false);

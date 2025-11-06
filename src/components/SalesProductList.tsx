@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/hooks/useStore";
+import { useOrderFormStore } from "@/stores/orderFormStore";
 import {
   ShoppingCart,
   Minus,
@@ -261,7 +262,21 @@ const SortableItem = ({
 };
 
 export const SalesProductList = () => {
-  const { salesItems, updateSalesItem, removeSalesItem, clearSalesItems, reorderSalesItems, getTotalQuantity, getTotalAmount, selectedCustomer, products } = useStore();
+  // 產品列表從全域 store
+  const { products } = useStore();
+  
+  // 銷售項目從訂單表單 store
+  const {
+    salesItems,
+    updateSalesItem,
+    removeSalesItem,
+    setSalesItems: clearSalesItems,
+    reorderSalesItems,
+    getTotalQuantity,
+    getTotalAmount,
+    selectedCustomer,
+  } = useOrderFormStore();
+  
   const [editingPrice, setEditingPrice] = useState<number | null>(null);
   const [editingQuantity, setEditingQuantity] = useState<number | null>(null);
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));

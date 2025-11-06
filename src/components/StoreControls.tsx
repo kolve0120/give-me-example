@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Send, Trash2, ChevronDown } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
+import { useOrderFormStore } from "@/stores/orderFormStore";
 import { toast } from "sonner";
 
 interface StoreControlsProps {
@@ -14,17 +15,20 @@ interface StoreControlsProps {
 }
 
 export const StoreControls = ({ submitLabel = '提交訂單' }: StoreControlsProps) => {
+  // UI 狀態從全域 store
+  const { setShowSuccessModal } = useStore();
+  
+  // 訂單表單數據從訂單表單 store
   const {
-    clearCustomer,
-    clearProducts,
-    clearAll,
     salesItems,
     selectedCustomer,
     orderInfo,
     getTotalAmount,
     getTotalQuantity,
-    setShowSuccessModal,
-  } = useStore();
+    clearAll,
+    setSelectedCustomer,
+    setSalesItems,
+  } = useOrderFormStore();
 
   const handleSubmit = async () => {
     if (!selectedCustomer || salesItems.length === 0) {
@@ -51,11 +55,11 @@ export const StoreControls = ({ submitLabel = '提交訂單' }: StoreControlsPro
   const handleClear = (type: 'customer' | 'products' | 'all') => {
     switch (type) {
       case 'customer':
-        clearCustomer();
+        setSelectedCustomer(null);
         toast.success("已清除客戶資料");
         break;
       case 'products':
-        clearProducts();
+        setSalesItems([]);
         toast.success("已清除產品清單");
         break;
       case 'all':

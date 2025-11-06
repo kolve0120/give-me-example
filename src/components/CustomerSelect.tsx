@@ -3,19 +3,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useStore, Customer } from "@/hooks/useStore";
+import { useStore } from "@/hooks/useStore";
+import { useOrderFormStore } from "@/stores/orderFormStore";
+import { Customer } from "@/types";
 import { User, Calendar, FileText, Store } from "lucide-react";
 import { toast } from "sonner";
 
 export const CustomerSelect = () => {
+  // 客戶列表從全域 store
+  const { customers, isLoadingCustomers } = useStore();
+  
+  // 表單狀態從訂單表單 store
   const {
-    customers,
     selectedCustomer,
     setSelectedCustomer,
     orderInfo,
     updateOrderInfo,
-    isLoadingCustomers,
-  } = useStore();
+  } = useOrderFormStore();
 
   const [showStoreDetails, setShowStoreDetails] = useState(false);
   const [customerForm, setCustomerForm] = useState<Customer>({

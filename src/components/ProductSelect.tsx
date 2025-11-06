@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useStore } from "@/hooks/useStore";
+import { useOrderFormStore } from "@/stores/orderFormStore";
 import {
   Package,
   X,
@@ -16,15 +17,20 @@ import { ProductGridView } from "./ProductGridView";
 import { ProductTableView } from "./ProductTableView";
 
 export const ProductSelect = () => {
+  // 產品列表從全域 store  
   const {
     products,
-    addSalesItem,
-    selectedCustomer,
-    productSidebarOpen,
-    setProductSidebarOpen,
     loadProductsFromApi,
     isLoadingProducts,
+    productSidebarOpen,
+    setProductSidebarOpen,
   } = useStore();
+  
+  // 訂單相關從訂單表單 store
+  const {
+    addSalesItem,
+    selectedCustomer,
+  } = useOrderFormStore();
   
   useEffect(() => {
     if (products.length === 0) {

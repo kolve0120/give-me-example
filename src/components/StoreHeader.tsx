@@ -1,9 +1,15 @@
 import { Card } from "@/components/ui/card";
 import { useStore } from "@/hooks/useStore";
+import { useOrderFormStore } from "@/stores/orderFormStore";
 import { StoreControls } from "./StoreControls";
 
 export const StoreHeader = () => {
-  const { selectedCustomer, salesItems, getTotalAmount, getTotalQuantity } = useStore();
+  const {
+    selectedCustomer,
+    salesItems,
+    getTotalAmount,
+    getTotalQuantity
+  } = useOrderFormStore();
 
   return (
     <Card className="card-elegant p-4 mb-6 animate-fade-in">
