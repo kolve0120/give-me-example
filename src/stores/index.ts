@@ -2,3 +2,5 @@
 export { useStore } from '@/hooks/useStore';
 export { useOrderFormStore } from './orderFormStore';
 export { useOrderEditStore } from './orderEditStore';
+export { useTabStore } from './tabStore';
+export type { TabInfo, TabType, OrderTabData } from './tabStore';

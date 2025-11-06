@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/hooks/useStore";
-import { useOrderFormStore } from "@/stores/orderFormStore";
+import { useTabStore } from "@/stores/tabStore";
 import {
   ShoppingCart,
   Minus,
@@ -261,21 +261,41 @@ const SortableItem = ({
   );
 };
 
-export const SalesProductList = () => {
-  // 產品列表從全域 store
+interface SalesProductListProps {
+  tabId: string;
+}
+
+export const SalesProductList = ({ tabId }: SalesProductListProps) => {
   const { products } = useStore();
+  const { getOrderData, updateOrderData } = useTabStore();
   
-  // 銷售項目從訂單表單 store
-  const {
-    salesItems,
-    updateSalesItem,
-    removeSalesItem,
-    setSalesItems: clearSalesItems,
-    reorderSalesItems,
-    getTotalQuantity,
-    getTotalAmount,
-    selectedCustomer,
-  } = useOrderFormStore();
+  const orderData = getOrderData(tabId);
+  const salesItems = orderData?.salesItems || [];
+  const selectedCustomer = orderData?.selectedCustomer;
+
+  const updateSalesItem = (index: number, updates: any) => {
+    const updatedItems = [...salesItems];
+    updatedItems[index] = { ...updatedItems[index], ...updates };
+    if ('quantity' in updates || 'priceDistribution' in updates) {
+      updatedItems[index].totalPrice = updatedItems[index].quantity * updatedItems[index].priceDistribution;
+    }
+    updateOrderData(tabId, { salesItems: updatedItems });
+  };
+
+  const removeSalesItem = (index: number) => {
+    updateOrderData(tabId, { salesItems: salesItems.filter((_, i) => i !== index) });
+  };
+
+  const clearSalesItems = () => {
+    updateOrderData(tabId, { salesItems: [] });
+  };
+
+  const reorderSalesItems = (items: any[]) => {
+    updateOrderData(tabId, { salesItems: items });
+  };
+
+  const getTotalQuantity = () => salesItems.reduce((sum, item) => sum + item.quantity, 0);
+  const getTotalAmount = () => salesItems.reduce((sum, item) => sum + item.totalPrice, 0);
   
   const [editingPrice, setEditingPrice] = useState<number | null>(null);
   const [editingQuantity, setEditingQuantity] = useState<number | null>(null);

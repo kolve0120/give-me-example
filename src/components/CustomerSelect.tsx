@@ -4,22 +4,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStore } from "@/hooks/useStore";
-import { useOrderFormStore } from "@/stores/orderFormStore";
+import { useTabStore } from "@/stores/tabStore";
 import { Customer } from "@/types";
 import { User, Calendar, FileText, Store } from "lucide-react";
 import { toast } from "sonner";
 
-export const CustomerSelect = () => {
+interface CustomerSelectProps {
+  tabId: string;
+}
+
+export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
   // 客戶列表從全域 store
   const { customers, isLoadingCustomers } = useStore();
   
-  // 表單狀態從訂單表單 store
-  const {
-    selectedCustomer,
-    setSelectedCustomer,
-    orderInfo,
-    updateOrderInfo,
-  } = useOrderFormStore();
+  // 表單狀態從 tab store
+  const { getOrderData, updateOrderData } = useTabStore();
+  const orderData = getOrderData(tabId);
+  const selectedCustomer = orderData?.selectedCustomer;
+  const orderInfo = orderData?.orderInfo;
 
   const [showStoreDetails, setShowStoreDetails] = useState(false);
   const [customerForm, setCustomerForm] = useState<Customer>({
@@ -66,14 +68,14 @@ export const CustomerSelect = () => {
   // 生成流水號
   const generateSerialNumber = (customer?: Customer) => {
     const targetCustomer = customer || selectedCustomer;
-    if (!targetCustomer || !orderInfo.date) return;
+    if (!targetCustomer || !orderInfo?.date) return;
 
-    const dateStr = orderInfo.date.slice(2, 4) + orderInfo.date.slice(5, 7)//orderInfo.date.replace(/-/g, "");
+    const dateStr = orderInfo.date.slice(2, 4) + orderInfo.date.slice(5, 7);
     const customerCode = targetCustomer.code.padStart(3, "0");
     const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
     const serialNumber = `SL${customerCode}${dateStr}${randomNum}`;
     
-    updateOrderInfo({ serialNumber });
+    updateOrderData(tabId, { orderInfo: { ...orderInfo, serialNumber } });
   };
 
   // 顯示建議
@@ -193,7 +195,7 @@ export const CustomerSelect = () => {
 
   // 選擇客戶
   const selectCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer);
+    updateOrderData(tabId, { selectedCustomer: customer });
     setCustomerForm(customer);
     generateSerialNumber(customer);
     toast.success(`已選擇客戶: ${customer.name}`);
@@ -236,10 +238,12 @@ export const CustomerSelect = () => {
             <Input
               id="date"
               type="date"
-              value={orderInfo.date}
+              value={orderInfo?.date || ''}
               onChange={(e) => {
-                updateOrderInfo({ date: e.target.value });
-                generateSerialNumber();
+                if (orderInfo) {
+                  updateOrderData(tabId, { orderInfo: { ...orderInfo, date: e.target.value } });
+                  generateSerialNumber();
+                }
               }}
               className="input-elegant"
             />
@@ -252,8 +256,8 @@ export const CustomerSelect = () => {
             </Label>
             <Input
               id="serialNumber"
-              value={orderInfo.serialNumber}
-              onChange={(e) => updateOrderInfo({ serialNumber: e.target.value })}
+              value={orderInfo?.serialNumber || ''}
+              onChange={(e) => orderInfo && updateOrderData(tabId, { orderInfo: { ...orderInfo, serialNumber: e.target.value } })}
               placeholder="自動生成或手動輸入"
               className="input-elegant"
             />
@@ -263,8 +267,8 @@ export const CustomerSelect = () => {
             <Label htmlFor="paperSerialNumber">紙本流水號</Label>
             <Input
               id="paperSerialNumber"
-              value={orderInfo.paperSerialNumber || ""}
-              onChange={(e) => updateOrderInfo({ paperSerialNumber: e.target.value })}
+              value={orderInfo?.paperSerialNumber || ""}
+              onChange={(e) => orderInfo && updateOrderData(tabId, { orderInfo: { ...orderInfo, paperSerialNumber: e.target.value } })}
               placeholder="紙本流水號"
               className="input-elegant"
             />

@@ -1,16 +1,12 @@
-import { useState, useRef, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useRef } from "react";
 import { StoreHeader } from "@/components/StoreHeader";
-import { CustomerSelect } from "@/components/CustomerSelect";
-import { ProductSelect } from "@/components/ProductSelect";
-import { SalesProductList } from "@/components/SalesProductList";
 import { ProductList } from "./products/ProductList";
-import { ProductForm } from "./products/ProductForm";
 import { OrderList } from "./orders/OrderList";
 import { SalesList } from "./sales/SalesList";
 import { PurchaseConversion } from "./purchase/PurchaseConversion";
 import { PaymentStatus } from "./payments/PaymentStatus";
-import { useStore } from "@/hooks/useStore";
+import { OrderForm } from "./orders/OrderForm";
+import { useTabStore, TabInfo } from "@/stores/tabStore";
 import { 
   ShoppingCart, 
   Package, 
@@ -19,100 +15,56 @@ import {
   ClipboardList,
   TrendingUp,
   X,
-  Save,
-  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-
-type TabType = {
-  id: string;
-  type: string;
-  label: string;
-  data?: any;
-};
 
 export const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState<string>("sales-1");
-  const [openTabs, setOpenTabs] = useState<TabType[]>([ { id: "sales-1", type: "sales", label: "新增訂單 #1" } ]);
+  const {
+    tabs,
+    activeTabId,
+    addNewOrderTab,
+    addEditOrderTab,
+    addOrSwitchToTab,
+    closeTab,
+    setActiveTab,
+  } = useTabStore();
 
   const [dragStartX, setDragStartX] = useState(0);
   const [dragCurrentX, setDragCurrentX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [salesCounter, setSalesCounter] = useState(1);
-  
-  const { 
-    salesItems, 
-    selectedCustomer, 
-    orderInfo,
-    clearAll,
-    setSalesItems,
-    setSelectedCustomer,
-    setOrderInfo,
-  } = useStore();
 
   const menuConfig = [
-    { value: "sales", label: "新增訂單", icon: ShoppingCart },
-    { value: "products", label: "產品管理", icon: Package },
-    { value: "orders", label: "訂單紀錄", icon: FileText },
-    { value: "sales-records", label: "銷售紀錄", icon: TrendingUp },
-    { value: "purchase", label: "訂單轉採購", icon: ClipboardList },
-    { value: "payments", label: "貨款查詢", icon: DollarSign },
+    { value: 'order-new' as const, label: "新增訂單", icon: ShoppingCart },
+    { value: 'products' as const, label: "產品管理", icon: Package },
+    { value: 'orders' as const, label: "訂單紀錄", icon: FileText },
+    { value: 'sales-records' as const, label: "銷售紀錄", icon: TrendingUp },
+    { value: 'purchase' as const, label: "訂單轉採購", icon: ClipboardList },
+    { value: 'payments' as const, label: "貨款查詢", icon: DollarSign },
   ];
 
-  const handleMenuClick = (value: string) => {
-    if (value === "sales") {
-      // 創建新的訂單 tab
-      const newCounter = salesCounter + 1;
-      setSalesCounter(newCounter);
-      const newTab = { 
-        id: `sales-${newCounter}`, 
-        type: "sales", 
-        label: `新增訂單 #${newCounter}` 
-      };
-      setOpenTabs([...openTabs, newTab]);
-      setActiveTab(newTab.id);
+  const handleMenuClick = (value: typeof menuConfig[number]['value']) => {
+    if (value === 'order-new') {
+      addNewOrderTab();
     } else {
-      // 檢查是否已開啟
-      const existingTab = openTabs.find(tab => tab.type === value);
-      if (existingTab) {
-        setActiveTab(existingTab.id);
-      } else {
-        const menuItem = menuConfig.find(m => m.value === value);
-        const newTab = { 
-          id: value, 
-          type: value, 
-          label: menuItem?.label || value 
-        };
-        setOpenTabs([...openTabs, newTab]);
-        setActiveTab(newTab.id);
-      }
+      addOrSwitchToTab(value, menuConfig.find(m => m.value === value)?.label || value);
     }
   };
 
   const handleLoadOrder = (order: any) => {
-    // 創建新的訂單 tab 並載入數據
-    const newCounter = salesCounter + 1;
-    setSalesCounter(newCounter);
-    const newTab = { 
-      id: `sales-${newCounter}`, 
-      type: "sales", 
-      label: `編輯訂單 ${order.orderInfo?.serialNumber || `#${newCounter}`}`,
-      data: order
+    const serialNumber = order.orderInfo?.serialNumber || order.id;
+    const orderData = {
+      selectedCustomer: order.customer,
+      salesItems: order.items,
+      orderInfo: order.orderInfo,
     };
-    setOpenTabs([...openTabs, newTab]);
-    setActiveTab(newTab.id);
+    addEditOrderTab(serialNumber, orderData);
   };
 
   const handleCloseTab = (tabId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const newOpenTabs = openTabs.filter(tab => tab.id !== tabId);
-    setOpenTabs(newOpenTabs);
-    if (activeTab === tabId && newOpenTabs.length > 0) {
-      setActiveTab(newOpenTabs[newOpenTabs.length - 1].id);
-    }
+    closeTab(tabId);
   };
 
   // 手機版滑動處理
@@ -136,7 +88,8 @@ export const Dashboard = () => {
     const threshold = 50;
     
     if (Math.abs(diff) > threshold) {
-      const currentIndex = menuConfig.findIndex(m => m.value === activeTab);
+      const currentTabType = tabs.find(t => t.id === activeTabId)?.type;
+      const currentIndex = menuConfig.findIndex(m => m.value === currentTabType);
       if (diff > 0 && currentIndex > 0) {
         handleMenuClick(menuConfig[currentIndex - 1].value);
       } else if (diff < 0 && currentIndex < menuConfig.length - 1) {
@@ -149,106 +102,25 @@ export const Dashboard = () => {
     setDragCurrentX(0);
   };
 
-  const handleSubmitOrder = (tabId: string) => {
-    if (!selectedCustomer) {
-      toast.error("請先選擇客戶");
-      return;
-    }
-    if (salesItems.length === 0) {
-      toast.error("請至少添加一個產品");
-      return;
-    }
-    if (!orderInfo.serialNumber) {
-      toast.error("請填寫流水號");
-      return;
-    }
-
-    const orderData = {
-      id: Date.now().toString(),
-      customer: selectedCustomer,
-      items: salesItems,
-      orderInfo: {
-        ...orderInfo,
-        status: orderInfo.status || "待處理"
-      },
-      timestamp: new Date().toISOString(),
-    };
-    
-    const savedOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-    savedOrders.push(orderData);
-    localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
-    
-    toast.success("訂單已暫存至本地");
-    clearAll();
-    
-    // 關閉當前 tab
-    handleCloseTab(tabId, { stopPropagation: () => {} } as React.MouseEvent);
-  };
-
-  const handleClearAll = (tabId: string) => {
-    if (confirm("確定要清除所有資料嗎？")) {
-      clearAll();
-      toast.success("已清除所有資料");
-    }
-  };
-
-  const getTabComponent = (tab: TabType) => {
+  const getTabComponent = (tab: TabInfo) => {
     switch (tab.type) {
-      case "sales":
-        return (
-          <div className="space-y-6">
-            <CustomerSelect />
-            <SalesProductList />
-            <ProductSelect />
-            
-            <div className="flex gap-3 justify-end sticky bottom-4 z-30">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={() => handleClearAll(tab.id)}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                清除全部
-              </Button>
-              <Button
-                size="lg"
-                onClick={() => handleSubmitOrder(tab.id)}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                提交訂單
-              </Button>
-            </div>
-          </div>
-        );
-      case "products":
+      case 'order-new':
+      case 'order-edit':
+        return <OrderForm tabId={tab.id} />;
+      case 'products':
         return <ProductList />;
-      case "orders":
+      case 'orders':
         return <OrderList onLoadOrder={handleLoadOrder} />;
-      case "sales-records":
+      case 'sales-records':
         return <SalesList />;
-      case "purchase":
+      case 'purchase':
         return <PurchaseConversion />;
-      case "payments":
+      case 'payments':
         return <PaymentStatus />;
       default:
         return null;
     }
   };
-
-  useEffect(() => {
-    // 載入訂單數據到當前 tab
-    const currentTab = openTabs.find(t => t.id === activeTab);
-    if (currentTab?.data) {
-      setSelectedCustomer(currentTab.data.customer);
-      setSalesItems(currentTab.data.items);
-      setOrderInfo(currentTab.data.orderInfo);
-      // 清除 data 以避免重複載入
-      const updatedTabs = openTabs.map(t => 
-        t.id === activeTab ? { ...t, data: undefined } : t
-      );
-      setOpenTabs(updatedTabs);
-    }
-  }, [activeTab]);
 
   return (
     <div className="min-h-screen bg-gradient-elegant">
@@ -278,19 +150,19 @@ export const Dashboard = () => {
           {/* 已開啟的 Tab */}
           <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border rounded-lg p-2 sticky top-20 z-20 shadow-sm">
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {openTabs.map((tab) => (
+              {tabs.map((tab) => (
                 <div
                   key={tab.id}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-md cursor-pointer transition-all whitespace-nowrap",
-                    activeTab === tab.id
+                    activeTabId === tab.id
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "hover:bg-muted"
                   )}
                   onClick={() => setActiveTab(tab.id)}
                 >
                   <span className="text-sm font-medium">{tab.label}</span>
-                  {openTabs.length > 1 && (
+                  {tabs.length > 1 && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -307,12 +179,12 @@ export const Dashboard = () => {
 
           {/* Tab 內容 */}
           <div className="mt-6">
-            {openTabs.map((tab) => (
+            {tabs.map((tab) => (
               <div
                 key={tab.id}
                 className={cn(
                   "space-y-6",
-                  activeTab === tab.id ? "block" : "hidden"
+                  activeTabId === tab.id ? "block" : "hidden"
                 )}
               >
                 {getTabComponent(tab)}
@@ -335,9 +207,10 @@ export const Dashboard = () => {
               onTouchEnd={handleDragEnd}
             >
               {menuConfig.map((menu, index) => {
-                const currentIndex = menuConfig.findIndex(m => m.value === activeTab);
+                const currentTab = tabs.find(t => t.id === activeTabId);
+                const currentIndex = menuConfig.findIndex(m => m.value === currentTab?.type);
                 const distance = Math.abs(index - currentIndex);
-                const isActive = openTabs.some(t => t.type === menu.value && t.id === activeTab);
+                const isActive = currentTab?.type === menu.value;
                 
                 return (
                   <div
@@ -372,22 +245,22 @@ export const Dashboard = () => {
           </div>
 
           {/* 已開啟的 Tab */}
-          {openTabs.length > 1 && (
+          {tabs.length > 1 && (
             <div className="bg-background/95 backdrop-blur border rounded-lg p-2">
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {openTabs.map((tab) => (
+                {tabs.map((tab) => (
                   <div
                     key={tab.id}
                     className={cn(
                       "flex items-center gap-2 px-3 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap text-sm",
-                      activeTab === tab.id
+                      activeTabId === tab.id
                         ? "bg-primary text-primary-foreground shadow-sm"
                         : "bg-muted"
                     )}
                     onClick={() => setActiveTab(tab.id)}
                   >
                     <span>{tab.label}</span>
-                    {openTabs.length > 1 && (
+                    {tabs.length > 1 && (
                       <button
                         className="ml-1"
                         onClick={(e) => handleCloseTab(tab.id, e)}
@@ -403,12 +276,12 @@ export const Dashboard = () => {
 
           {/* Tab 內容 */}
           <div className="mt-6">
-            {openTabs.map((tab) => (
+            {tabs.map((tab) => (
               <div
                 key={tab.id}
                 className={cn(
                   "space-y-6",
-                  activeTab === tab.id ? "block" : "hidden"
+                  activeTabId === tab.id ? "block" : "hidden"
                 )}
               >
                 {getTabComponent(tab)}
