@@ -1,4 +1,5 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbwGBJzxjPzCrKFPcRotxBjget4W_8BnQRGwD2mxX9lg190VWdHcPOx1eywaOe_YfOZr/exec";
+/* src/services/googleSheetsApi.ts */
+const API_URL = "https://script.google.com/macros/s/AKfycbxBOu23aufSw47VxB-oDMi_gFZPGTp5xMTBCXJwByupSZ79qHs5mRj6xJDsT7grqYaE/exec";
 
 export interface GoogleSheetsProduct {
   productId: string;
@@ -37,6 +38,8 @@ export interface GoogleSheetsSale {
 }
 
 export interface GoogleSheetsOrder {
+  orderInfo: any;
+  priceDistribution: number;
   orderId: string;
   orderDate: string;
   customer: string;
@@ -94,6 +97,7 @@ export const fetchSales = async (): Promise<GoogleSheetsSale[]> => {
 
 export const fetchOrders = async (): Promise<GoogleSheetsOrder[]> => {
   const response = await fetchGoogleSheetsData('orders');
+  // 假設後端/Apps Script 回傳的 data.orders 已經是 getOrders() 所產生的結構
   return response.data?.orders || [];
 };
 

@@ -42,7 +42,7 @@ export const createCustomerSlice: StateCreator<CustomerSlice> = (set) => ({
         storeName: c.storeName,
         chainStoreName: c.chainStoreName,
       }));
-      
+
       set({ customers: formattedCustomers, isLoadingCustomers: false });
     } catch (error) {
       console.error('Failed to load customers from API:', error);

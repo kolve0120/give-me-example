@@ -2,7 +2,7 @@
 import { StateCreator } from "zustand";
 import { fetchOrders, GoogleSheetsOrder } from "@/services/googleSheetsApi";
 import { Customer, Order, OrderInfo } from "@/types";
-
+import { useStore } from "@/hooks/useStore";
 export interface OrderSlice {
   orders: Order[];
   isLoadingOrders: boolean;
@@ -45,29 +45,47 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
     set({ isLoadingOrders: true });
     try {
       const sheetOrders = await fetchOrders();
-      console.log("api資料",sheetOrders)
-      const formattedOrders: Order[] = sheetOrders.map((o) => ({
-        id: String(o.orderId),
-        orderInfo: {
-          date: o.orderDate,
-          serialNumber: o.orderId,
-          status: "待處理",
-          customer: { name: o.orderInfo.customer },
-        },
-        items: [
-          {
-            name: o.productName,
-            model: o.productModel,
-            quantity: o.unshippedQty,
-            priceDistribution: o.priceDistribution || 0,
-            totalPrice: o.unshippedQty * (o.priceDistribution || 0),
+      const customers = useStore.getState().customers; // 直接取最新的 customers
+
+      const formattedOrders: Order[] = sheetOrders.map((o) => {
+        // 依客戶名稱找完整資料
+        const fullCustomer = customers.find(c => 
+          c.code === (o.orderInfo?.customer || o.customer)
+        );
+
+        const customerObj: Customer = fullCustomer || {
+          id: `unknown-${o.orderId}`,
+          code: "",
+          name: o.orderInfo?.customer || o.customer || "未知客戶",
+          storeName: "",
+          chainStoreName: "",
+        };
+
+        return {
+          id: String(o.orderInfo.serialNumber),
+          orderInfo: {
+            date: o.orderDate,
+            serialNumber: String(o.orderInfo.serialNumber),
+            status: "待處理",
+            customer: customerObj,
           },
-        ],
-      }));
+          customer: customerObj,
+          items: [
+            {
+              name: o.productName,
+              model: o.productModel,
+              code: o.productId,
+              quantity: o.unshippedQty,
+              priceDistribution: o.priceDistribution || 0,
+              totalPrice: o.unshippedQty * (o.priceDistribution || 0),
+            },
+          ],
+        };
+      });
 
       set({ orders: formattedOrders, isLoadingOrders: false });
     } catch (error) {
-      console.error("❌ Failed to load orders:", error);
+      console.error("Failed to load orders:", error);
       set({ isLoadingOrders: false });
     }
   },

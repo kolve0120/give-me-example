@@ -15,6 +15,12 @@ export interface ProductSlice {
   removeSelectedProduct: (productId: number) => void;
   clearProducts: () => void;
   loadProductsFromApi: () => Promise<void>;
+
+  // 新增方法：依商品代碼取得產品
+  getProductByCode: (code: string) => Product | undefined;
+
+  // 新增方法：把 salesItems 用 product 資料補齊並計算 totalPrice
+  enrichSalesItems: (items: { code: string; quantity: number; priceDistribution?: number }[]) => (Product & { quantity: number; totalPrice: number; priceDistribution: number })[];
 }
 
 export const createProductSlice: StateCreator<ProductSlice> = (set, get) => ({
@@ -68,5 +74,46 @@ export const createProductSlice: StateCreator<ProductSlice> = (set, get) => ({
       console.error('Failed to load products from API:', error);
       set({ isLoadingProducts: false });
     }
+  },
+
+  // 新增實作：依 code 取得 product（回傳 undefined 表示找不到）
+  getProductByCode: (code: string) => {
+    const { products } = get();
+    if (!code) return undefined;
+    return products.find(p => p.code === code);
+  },
+
+  // 新增實作：補齊 salesItems，計算 totalPrice
+  enrichSalesItems: (items) => {
+    const { products } = get();
+    return items.map(item => {
+      const code = (item.code || '').toString().trim();
+      const quantity = Number(item.quantity || 0);
+      const product = products.find(p => p.code === code);
+
+      const basePrice = Number(item.priceDistribution ?? product?.priceDistribution ?? 0);
+      const totalPrice = Number((basePrice * quantity) || 0);
+
+      // 當找不到 product 時建立一個最小物件以避免 undefined
+      const filled: Product & { quantity: number; totalPrice: number; priceDistribution: number } = {
+        id: product?.id ?? -1,
+        code: code,
+        name: product?.name ?? '',
+        series: product?.series ?? '',
+        vendor: product?.vendor ?? '',
+        remark: product?.remark ?? '',
+        model: product?.model ?? '',
+        tableTitle: product?.tableTitle ?? '',
+        tableRowTitle: product?.tableRowTitle ?? '',
+        tableColTitle: product?.tableColTitle ?? '',
+        priceRetail: product?.priceRetail ?? 0,
+        priceDistribution: Number(basePrice),
+        state: product?.state ?? '停用',
+        quantity,
+        totalPrice,
+      };
+
+      return filled;
+    });
   },
 });
