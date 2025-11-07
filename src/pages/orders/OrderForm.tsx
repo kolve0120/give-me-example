@@ -14,9 +14,15 @@ interface OrderFormProps {
 }
 
 export const OrderForm = ({ tabId }: OrderFormProps) => {
-  const { getOrderData, updateOrderData, clearOrderData, closeTab } = useTabStore();
+  const { getOrderData, updateOrderData, clearOrderData, closeTab, tabs } = useTabStore();
+  const { enrichSalesItems } = useStore();
   const orderData = getOrderData(tabId);
-  console.log("OrderForm 訂單數據", orderData); 
+  const currentTab = tabs.find(t => t.id === tabId);
+  const isEditMode = currentTab?.type === 'order-edit';
+  const serialNumber = currentTab?.orderSerialNumber;
+  
+  console.log("OrderForm 訂單數據", orderData, "編輯模式:", isEditMode); 
+  
   const handleSubmitOrder = () => {
     if (!orderData?.selectedCustomer) {
       toast.error("請先選擇客戶");
@@ -31,10 +37,13 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
       return;
     }
 
+    // 補齊產品資料
+    const enrichedItems = enrichSalesItems(orderData.salesItems);
+
     const orderToSave = {
-      id: Date.now().toString(),
+      id: orderData.orderInfo.serialNumber,
       customer: orderData.selectedCustomer,
-      items: orderData.salesItems,
+      items: enrichedItems,
       orderInfo: {
         ...orderData.orderInfo,
         status: orderData.orderInfo.status || "待處理"
@@ -42,15 +51,27 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
       timestamp: new Date().toISOString(),
     };
     
-    // 保存到本地存儲
+    // 從本地存儲讀取現有訂單
     const savedOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-    savedOrders.push(orderToSave);
-    localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
-    console.log("訂單",savedOrders)
-    // TODO: 這裡應該保存到數據庫
-    // await saveOrderToDatabase(orderToSave);
     
-    toast.success("訂單已提交");
+    if (isEditMode && serialNumber) {
+      // 編輯模式：更新現有訂單
+      const updatedOrders = savedOrders.map((order: any) => 
+        order.orderInfo?.serialNumber === serialNumber ? orderToSave : order
+      );
+      localStorage.setItem('pendingOrders', JSON.stringify(updatedOrders));
+      toast.success(`訂單 ${serialNumber} 已更新`);
+    } else {
+      // 新增模式：添加新訂單
+      savedOrders.push(orderToSave);
+      localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
+      toast.success("訂單已新增");
+    }
+    
+    console.log("訂單已保存", orderToSave);
+    // TODO: 調用 API 保存到 Google Sheets
+    // await submitOrder(orderToSave, isEditMode ? 'update' : 'create');
+    
     clearOrderData(tabId);
     closeTab(tabId);
   };

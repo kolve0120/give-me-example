@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useStore } from "@/hooks/useStore";
 import { StoreHeader } from "@/components/StoreHeader";
 import { ProductList } from "./products/ProductList";
 import { OrderList } from "./orders/OrderList";
@@ -29,6 +30,13 @@ export const Dashboard = () => {
     closeTab,
     setActiveTab,
   } = useTabStore();
+  
+  const { initializeApp } = useStore();
+
+  // 統一初始化，避免重複載入
+  useEffect(() => {
+    initializeApp();
+  }, [initializeApp]);
 
   const [dragStartX, setDragStartX] = useState(0);
   const [dragCurrentX, setDragCurrentX] = useState(0);

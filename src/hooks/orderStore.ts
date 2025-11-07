@@ -1,8 +1,7 @@
 // src/hooks/orderStore.ts
 import { StateCreator } from "zustand";
-import { fetchOrders, GoogleSheetsOrder } from "@/services/googleSheetsApi";
-import { Customer, Order, OrderInfo } from "@/types";
-import { useStore } from "@/hooks/useStore";
+import { fetchOrders, GoogleSheetsOrderResponse } from "@/services/googleSheetsApi";
+import { Customer, Order, OrderInfo, OrderItem } from "@/types";
 export interface OrderSlice {
   orders: Order[];
   isLoadingOrders: boolean;
@@ -45,41 +44,63 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
     set({ isLoadingOrders: true });
     try {
       const sheetOrders = await fetchOrders();
-      const customers = useStore.getState().customers; // 直接取最新的 customers
+      
+      // 動態獲取最新的 products 和 customers
+      const getProducts = () => (window as any).__globalStore?.getState().products || [];
+      const getCustomers = () => (window as any).__globalStore?.getState().customers || [];
+      
+      const products = getProducts();
+      const customers = getCustomers();
 
-      const formattedOrders: Order[] = sheetOrders.map((o) => {
-        // 依客戶名稱找完整資料
-        const fullCustomer = customers.find(c => 
-          c.code === (o.orderInfo?.customer || o.customer)
+      const formattedOrders: Order[] = sheetOrders.map((apiOrder) => {
+        // 用 code 找客戶完整資料
+        const fullCustomer = customers.find((c: Customer) => 
+          c.code === apiOrder.selectedCustomer.code
         );
 
-        const customerObj: Customer = fullCustomer || {
-          id: `unknown-${o.orderId}`,
-          code: "",
-          name: o.orderInfo?.customer || o.customer || "未知客戶",
-          storeName: "",
-          chainStoreName: "",
+        const customer: Customer = fullCustomer || {
+          id: `c-${apiOrder.selectedCustomer.code}`,
+          code: apiOrder.selectedCustomer.code,
+          name: apiOrder.selectedCustomer.name,
+          storeName: apiOrder.selectedCustomer.storeName,
+          chainStoreName: apiOrder.selectedCustomer.chainStoreName,
         };
 
+        // 用 code 補齊每個商品的完整資料
+        const items: OrderItem[] = apiOrder.salesItems.map((saleItem) => {
+          // 優先用 product.code，沒有就用 productId
+          const product = products.find((p: any) => {
+            const pCode = p.code || p.productId;
+            return pCode === saleItem.code;
+          });
+
+          const priceDistribution = saleItem.priceDistribution || product?.priceDistribution || 0;
+          const quantity = saleItem.quantity || 0;
+
+          return {
+            code: saleItem.code,
+            name: product?.name || saleItem.code,
+            model: product?.model || '',
+            quantity,
+            priceDistribution,
+            totalPrice: quantity * priceDistribution,
+            remark: product?.remark || '',
+            status: '待處理', // 品項預設狀態
+            shippedQuantity: 0,
+          };
+        });
+
         return {
-          id: String(o.orderInfo.serialNumber),
+          id: apiOrder.orderInfo.serialNumber,
           orderInfo: {
-            date: o.orderDate,
-            serialNumber: String(o.orderInfo.serialNumber),
-            status: "待處理",
-            customer: customerObj,
+            date: apiOrder.orderInfo.date,
+            serialNumber: apiOrder.orderInfo.serialNumber,
+            status: apiOrder.orderInfo.status || '待處理',
+            customer,
+            paperSerialNumber: apiOrder.orderInfo.remark || '',
           },
-          customer: customerObj,
-          items: [
-            {
-              name: o.productName,
-              model: o.productModel,
-              code: o.productId,
-              quantity: o.unshippedQty,
-              priceDistribution: o.priceDistribution || 0,
-              totalPrice: o.unshippedQty * (o.priceDistribution || 0),
-            },
-          ],
+          customer,
+          items,
         };
       });
 

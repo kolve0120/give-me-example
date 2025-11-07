@@ -19,6 +19,8 @@ type StoreState = CustomerSlice &
     // 額外的全域方法
     clearAll: () => void;
     getProductPrice: (productCode: string) => number;
+    isInitialized: boolean;
+    initializeApp: () => Promise<void>;
   };
 
 export const useStore = create<StoreState>()(
@@ -68,6 +70,37 @@ export const useStore = create<StoreState>()(
         // 目前先返回經銷價,如果沒有則返回零售價
         return product.priceDistribution || product.priceRetail;
       },
+
+      // 初始化狀態
+      isInitialized: false,
+
+      // 統一初始化入口，避免重複載入
+      initializeApp: async () => {
+        const state = get();
+        if (state.isInitialized) {
+          console.log('App already initialized, skipping...');
+          return;
+        }
+        
+        console.log('Initializing app data...');
+        set({ isInitialized: true });
+        
+        try {
+          // 並行載入產品和客戶資料
+          await Promise.all([
+            state.loadProductsFromApi(),
+            state.loadCustomersFromApi(),
+          ]);
+          
+          // 產品和客戶載入後，再載入訂單（需要補齊資料）
+          await state.loadOrdersFromApi();
+          
+          console.log('App initialization complete');
+        } catch (error) {
+          console.error('Failed to initialize app:', error);
+          set({ isInitialized: false });
+        }
+      },
     }),
     {
       name: 'store-management',
@@ -81,3 +114,8 @@ export const useStore = create<StoreState>()(
     }
   )
 );
+
+// 暴露給 orderStore 使用
+if (typeof window !== 'undefined') {
+  (window as any).__globalStore = useStore;
+}

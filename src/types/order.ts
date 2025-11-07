@@ -25,4 +25,6 @@ export interface OrderItem {
   priceDistribution: number;
   totalPrice: number;
   remark?: string;
+  status?: string; // 品項狀態：待處理、已出貨、部分出貨等
+  shippedQuantity?: number; // 已出貨數量
 }

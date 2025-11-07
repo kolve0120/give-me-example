@@ -24,10 +24,9 @@ export const OrderList = ({ onLoadOrder }: OrderListProps) => {
   const [shipmentInputs, setShipmentInputs] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("pendingOrders") || "[]");
-    if (saved.length > 0) setOrders(saved);
-    else loadOrdersFromApi();
-  }, [loadOrdersFromApi, setOrders]);
+    // 優先從 localStorage 載入，避免重複 API 調用
+    loadOrders();
+  }, []);
 
   const loadOrders = () => {
     const saved = JSON.parse(localStorage.getItem("pendingOrders") || "[]");

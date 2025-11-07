@@ -37,19 +37,25 @@ export interface GoogleSheetsSale {
   rowNumber: number;
 }
 
-export interface GoogleSheetsOrder {
-  orderInfo: any;
-  priceDistribution: number;
-  orderId: string;
-  orderDate: string;
-  customer: string;
-  brand: string;
-  productId: string;
-  productName: string;
-  productModel: string;
-  productOption: string;
-  unshippedQty: number;
-  rowNumber: number;
+// 新的訂單格式（與 Google Sheets 返回格式一致）
+export interface GoogleSheetsOrderResponse {
+  selectedCustomer: {
+    name: string;
+    code: string;
+    storeName: string;
+    chainStoreName: string;
+  };
+  salesItems: Array<{
+    code: string;
+    priceDistribution: number;
+    quantity: number;
+  }>;
+  orderInfo: {
+    date: string;
+    serialNumber: string;
+    status: string;
+    remark?: string;
+  };
 }
 
 interface ApiResponse {
@@ -57,11 +63,59 @@ interface ApiResponse {
   data?: {
     products?: GoogleSheetsProduct[];
     sales?: GoogleSheetsSale[];
-    orders?: GoogleSheetsOrder[];
+    orders?: GoogleSheetsOrderResponse[];
     customers?: GoogleSheetsCustomer[];
   };
   error?: string;
 }
+
+// API 操作類型
+export type OrderActionType = 'create' | 'update' | 'shipment';
+
+// 預留：送出訂單 API（新增訂單）
+export const submitOrder = async (orderData: any, action: OrderActionType = 'create'): Promise<ApiResponse> => {
+  try {
+    // TODO: 實作送出訂單到 Google Sheets
+    console.log('Submit order:', { action, orderData });
+    return { ok: true, data: {} };
+  } catch (error) {
+    console.error('Error submitting order:', error);
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+// 預留：更新訂單 API
+export const updateOrder = async (serialNumber: string, orderData: any): Promise<ApiResponse> => {
+  try {
+    // TODO: 實作更新訂單到 Google Sheets
+    console.log('Update order:', { serialNumber, orderData });
+    return { ok: true, data: {} };
+  } catch (error) {
+    console.error('Error updating order:', error);
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
+
+// 預留：銷售出貨 API
+export const submitShipment = async (shipmentData: any): Promise<ApiResponse> => {
+  try {
+    // TODO: 實作銷售出貨到 Google Sheets
+    console.log('Submit shipment:', shipmentData);
+    return { ok: true, data: {} };
+  } catch (error) {
+    console.error('Error submitting shipment:', error);
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+};
 
 export const fetchGoogleSheetsData = async (type: 'products' | 'sales' | 'orders' | 'customers' | 'all' = 'all'): Promise<ApiResponse> => {
   try {
@@ -95,9 +149,8 @@ export const fetchSales = async (): Promise<GoogleSheetsSale[]> => {
   return response.data?.sales || [];
 };
 
-export const fetchOrders = async (): Promise<GoogleSheetsOrder[]> => {
+export const fetchOrders = async (): Promise<GoogleSheetsOrderResponse[]> => {
   const response = await fetchGoogleSheetsData('orders');
-  // 假設後端/Apps Script 回傳的 data.orders 已經是 getOrders() 所產生的結構
   return response.data?.orders || [];
 };
 
