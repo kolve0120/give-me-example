@@ -22,7 +22,7 @@ export const PurchaseConversion = () => {
   const [groupedProducts, setGroupedProducts] = useState<ProductGroup[]>([]);
 
   useEffect(() => {
-    loadOrders();
+   // loadOrders();
   }, []);
 
   useEffect(() => {

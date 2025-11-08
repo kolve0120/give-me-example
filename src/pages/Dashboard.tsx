@@ -8,6 +8,8 @@ import { PurchaseConversion } from "./purchase/PurchaseConversion";
 import { PaymentStatus } from "./payments/PaymentStatus";
 import { OrderForm } from "./orders/OrderForm";
 import { useTabStore, TabInfo } from "@/stores/tabStore";
+import { AuthModal } from "@/components/AuthModal";
+
 import { 
   ShoppingCart, 
   Package, 
@@ -299,7 +301,7 @@ export const Dashboard = () => {
         </div>
       </div>
       
-      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      
     </div>
   );
 };

@@ -104,14 +104,17 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
         };
       });
       console.log("取得訂單",formattedOrders)
-set(state => ({
-  orders: [
-    ...state.orders.filter(o => !formattedOrders.some(n => n.orderInfo.serialNumber === o.orderInfo.serialNumber)),
-    ...formattedOrders
-  ],
-  isLoadingOrders: false
-}));
+    const uniqueFormattedOrders = Array.from(
+      new Map(formattedOrders.map(o => [o.orderInfo.serialNumber, o])).values()
+    );
 
+    set(state => ({
+      orders: [
+        ...state.orders.filter(o => !uniqueFormattedOrders.some(n => n.orderInfo.serialNumber === o.orderInfo.serialNumber)),
+        ...uniqueFormattedOrders
+      ],
+      isLoadingOrders: false
+    }));
 
       /*set({ orders: formattedOrders, isLoadingOrders: false });*/
     } catch (error) {

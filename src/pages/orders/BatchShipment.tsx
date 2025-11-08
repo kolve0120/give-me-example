@@ -62,13 +62,7 @@ export const BatchShipment = ({
           >
             <AccordionTrigger className="px-4 py-3 bg-amber-100 hover:bg-amber-200">
               <div className="flex justify-between w-full pr-4 items-center">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    checked={groupAllSelected}
-                    onCheckedChange={(checked) => handleSelectAll(group, Boolean(checked))}
-                  />
-                  <span className="font-semibold text-lg">{group.customer}</span>
-                </div>
+                <div className="font-medium">{group.customer}</div>
                 <div className="flex gap-6 text-sm text-muted-foreground">
                   <span>總數量：<strong>{group.totalQty}</strong></span>
                   <span>
@@ -79,10 +73,19 @@ export const BatchShipment = ({
             </AccordionTrigger>
 
             <AccordionContent className="bg-white">
+                <div className="flex items-center gap-2">
+
+                  
+                </div>
               <Table>
                 <TableHeader>
                   <TableRow className="bg-amber-50">
-                    <TableHead className="w-10"></TableHead>
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={groupAllSelected}
+                        onCheckedChange={(checked) => handleSelectAll(group, Boolean(checked))}
+                      />
+                    </TableHead>
                     <TableHead>訂單編號</TableHead>
                     <TableHead>產品名稱</TableHead>
                     <TableHead className="text-right">訂購數量</TableHead>

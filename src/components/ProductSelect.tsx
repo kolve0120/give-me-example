@@ -37,10 +37,10 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
   const salesItems = orderData?.salesItems || [];
   
   useEffect(() => {
-    if (products.length === 0) {
+    if (products.length === 0 && !isLoadingProducts) {
       loadProductsFromApi();
     }
-  }, []);
+  }, [products, isLoadingProducts, loadProductsFromApi]);
 
   const [quickSearch, setQuickSearch] = useState("");
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
