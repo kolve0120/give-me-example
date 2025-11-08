@@ -44,15 +44,15 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
     set({ isLoadingOrders: true });
     try {
       const sheetOrders = await fetchOrders();
-      console.log("apisheetOrders:",sheetOrders)
+      console.log("API 訂單資料:", sheetOrders);
+      
       // 動態獲取最新的 products 和 customers
       const getProducts = () => (window as any).__globalStore?.getState().products || [];
       const getCustomers = () => (window as any).__globalStore?.getState().customers || [];
       
       const products = getProducts();
       const customers = getCustomers();
-      const productMap = new Map(products.map(p => [p.code, p]));
-      const customerMap = new Map(customers.map(c => [c.code, c]));
+
       const formattedOrders: Order[] = sheetOrders.map((apiOrder) => {
         // 用 code 找客戶完整資料
         const fullCustomer = customers.find((c: Customer) => 
@@ -69,7 +69,6 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
 
         // 用 code 補齊每個商品的完整資料
         const items: OrderItem[] = apiOrder.salesItems.map((saleItem) => {
-          // 優先用 product.code，沒有就用 productId
           const product = products.find((p: any) => {
             const pCode = p.code || p.productId;
             return pCode === saleItem.code;
@@ -86,7 +85,7 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
             priceDistribution,
             totalPrice: quantity * priceDistribution,
             remark: product?.remark || '',
-            status: '待處理', // 品項預設狀態
+            status: '待處理',
             shippedQuantity: 0,
             rowNumber: saleItem.rowNumber,
           };
@@ -105,22 +104,14 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
           items,
         };
       });
-      console.log("取得訂單",formattedOrders)
-    const uniqueFormattedOrders = Array.from(
-      new Map(formattedOrders.map(o => [o.orderInfo.serialNumber, o])).values()
-    );
 
-    set(state => ({
-      orders: [
-        ...state.orders.filter(o => !uniqueFormattedOrders.some(n => n.orderInfo.serialNumber === o.orderInfo.serialNumber)),
-        ...uniqueFormattedOrders
-      ],
-      isLoadingOrders: false
-    }));
+      console.log("格式化後訂單:", formattedOrders);
+      
+      // 完全替換訂單資料，不合併本地資料
+      set({ orders: formattedOrders, isLoadingOrders: false });
 
-      /*set({ orders: formattedOrders, isLoadingOrders: false });*/
     } catch (error) {
-      console.error("Failed to load orders:", error);
+      console.error("載入訂單失敗:", error);
       set({ isLoadingOrders: false });
     }
   },

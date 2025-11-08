@@ -144,7 +144,23 @@ export const fetchGoogleSheetsData = async <T extends keyof DataMap>(
 
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-    return await response.json();
+    const result = await response.json();
+    
+    // Google Sheets 回傳 { ok: true, data: { orders: [...], products: [...] } }
+    // 需要提取對應的 type 資料
+    if (result.ok && result.data) {
+      // 如果 type 是 'all'，直接回傳整個 data
+      if (type === 'all') {
+        return result;
+      }
+      // 否則提取對應的資料陣列，並包裝成 { ok, data: [...] }
+      return {
+        ok: true,
+        data: result.data[type] || []
+      };
+    }
+    
+    return result;
   } catch (error) {
     console.error("Error fetching Google Sheets data:", error);
     return {

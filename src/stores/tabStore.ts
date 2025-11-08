@@ -26,7 +26,7 @@ interface TabStoreState {
 
   // Tab 管理
   addNewOrderTab: () => string;
-  addEditOrderTab: (serialNumber: string, orderData: OrderTabData) => string;
+  addEditOrderTab: (order: any) => string;
   addOrSwitchToTab: (type: TabType, label: string) => void;
   closeTab: (tabId: string) => void;
   setActiveTab: (tabId: string) => void;
@@ -76,8 +76,9 @@ export const useTabStore = create<TabStoreState>()(
         return newTabId;
       },
 
-      addEditOrderTab: (serialNumber, orderData) => {
-        const { tabs, orderCounter } = get();
+      addEditOrderTab: (order) => {
+        const { tabs } = get();
+        const serialNumber = order.orderInfo.serialNumber;
         
         // 檢查是否已存在相同單號的 tab
         const existingTab = tabs.find(
@@ -90,13 +91,27 @@ export const useTabStore = create<TabStoreState>()(
           return existingTab.id;
         }
 
-        // 創建新的編輯 tab
-        const newCounter = orderCounter + 1;
-        const newTabId = `order-edit-${serialNumber}-${newCounter}`;
+        // 創建新的編輯 tab，使用 serialNumber 作為 ID
+        const newTabId = `edit-${serialNumber}`;
+        const orderData: OrderTabData = {
+          selectedCustomer: order.customer,
+          salesItems: order.items.map((item: any) => ({
+            code: item.code,
+            name: item.name,
+            model: item.model,
+            quantity: item.quantity,
+            priceDistribution: item.priceDistribution,
+            totalPrice: item.totalPrice,
+            remark: item.remark,
+            rowNumber: item.rowNumber,
+          })),
+          orderInfo: order.orderInfo,
+        };
+
         const newTab: TabInfo = {
           id: newTabId,
           type: 'order-edit',
-          label: `編輯訂單 ${serialNumber}`,
+          label: `編輯 ${serialNumber}`,
           orderData,
           orderSerialNumber: serialNumber,
         };
@@ -104,7 +119,6 @@ export const useTabStore = create<TabStoreState>()(
         set({
           tabs: [...tabs, newTab],
           activeTabId: newTabId,
-          orderCounter: newCounter,
         });
 
         return newTabId;

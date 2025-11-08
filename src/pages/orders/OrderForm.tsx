@@ -39,53 +39,41 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
     const enrichedItems = enrichSalesItems(orderData.salesItems);
 
     const orderToSave = {
-      id: orderData.orderInfo.serialNumber,
       customer: orderData.selectedCustomer,
       items: enrichedItems,
       orderInfo: {
         ...orderData.orderInfo,
         status: orderData.orderInfo.status || "待處理"
-      },
-      timestamp: new Date().toISOString(),
+      }
     };
-
-    // 從 localStorage 讀取
-    const savedOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
 
     try {
       let apiResult;
 
       if (isEditMode && serialNumber) {
         // === 更新模式 ===
-        const updatedOrders = savedOrders.map((order: any) =>
-          order.orderInfo?.serialNumber === serialNumber ? orderToSave : order
-        );
-
-        // 更新 localStorage
-        localStorage.setItem('pendingOrders', JSON.stringify(updatedOrders));
-
-        // 呼叫 update API
-        apiResult = await updateOrder(serialNumber, orderToSave); // 使用專用函數
-
+        apiResult = await updateOrder(serialNumber, orderToSave);
         toast.success(`訂單 ${serialNumber} 已更新`);
       } else {
         // === 新增模式 ===
-        savedOrders.push(orderToSave);
-        localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
-
-        // 呼叫 create API
-        apiResult = await createOrder(orderToSave); // 使用專用函數
-
+        apiResult = await createOrder(orderToSave);
         toast.success("訂單已新增");
       }
 
-      // === 成功後印出 Google Sheets 回傳的 rowNumber ===
-      apiResult.forEach(order => {
-        console.log('訂單', order.serialNumber);
-        order.items.forEach(item => {
-          console.log(`品項 ${item.code} 在第 ${item.rowNumber} 列`);
-        });
-      });
+      // === 更新 store 中的 rowNumber ===
+      if (apiResult && apiResult.length > 0) {
+        const orderResult = apiResult[0];
+        console.log('訂單回傳:', orderResult);
+        
+        // 更新 orderStore 中對應訂單的 items 的 rowNumber
+        useStore.getState().updateOrderItemRowNumbers(
+          orderResult.serialNumber,
+          orderResult.items
+        );
+      }
+
+      // 重新載入訂單列表
+      await useStore.getState().loadOrdersFromApi();
 
       // 清除表單 + 關閉 tab
       clearOrderData(tabId);
@@ -93,7 +81,7 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
 
     } catch (error: any) {
       toast.error(error.message || "保存失敗");
-      console.error("Submit order error:", error);
+      console.error("提交訂單錯誤:", error);
     }
   };
 

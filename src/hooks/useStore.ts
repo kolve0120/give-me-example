@@ -21,6 +21,8 @@ type StoreState = CustomerSlice &
     // 額外的全域方法
     clearAll: () => void;
     getProductPrice: (productCode: string) => number;
+    enrichSalesItems: (items: any[]) => any[];
+    updateOrderItemRowNumbers: (serialNumber: string, items: Array<{ code: string; rowNumber: number }>) => void;
     isInitialized: boolean;
     initializeApp: () => Promise<void>;
   };
@@ -72,6 +74,44 @@ export const useStore = create<StoreState>()(
         // 可以在這裡實現客戶專屬價格邏輯
         // 目前先返回經銷價,如果沒有則返回零售價
         return product.priceDistribution || product.priceRetail;
+      },
+
+      // 補齊銷售品項的產品資料
+      enrichSalesItems: (items) => {
+        const { products } = get();
+        return items.map(item => {
+          const product = products.find(p => p.code === item.code);
+          return {
+            ...item,
+            name: product?.name || item.name || item.code,
+            model: product?.model || item.model || '',
+            vendor: product?.brand || '',
+            series: product?.seriesList || '',
+            remark: item.remark || product?.colors || '',
+          };
+        });
+      },
+
+      // 更新訂單品項的 rowNumber
+      updateOrderItemRowNumbers: (serialNumber, items) => {
+        set(state => {
+          const orders = state.orders.map(order => {
+            if (order.orderInfo.serialNumber === serialNumber) {
+              return {
+                ...order,
+                items: order.items.map(orderItem => {
+                  const matchedItem = items.find(i => i.code === orderItem.code);
+                  if (matchedItem) {
+                    return { ...orderItem, rowNumber: matchedItem.rowNumber };
+                  }
+                  return orderItem;
+                })
+              };
+            }
+            return order;
+          });
+          return { orders };
+        });
       },
 
       // 初始化狀態
