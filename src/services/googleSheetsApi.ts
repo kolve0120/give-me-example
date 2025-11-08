@@ -1,5 +1,5 @@
 /* src/services/googleSheetsApi.ts */
-const API_URL = "https://script.google.com/macros/s/AKfycbwbt8_BP3Ipa6nf7SgJJbS2SAgtAI-pVTf5X8I2kkQr6okNwT9tYm46qQAv6EqgT893/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwLQQsVwT68tc1EuoxVCIGmfFab_r1TBNAR79VzbKxgyVy4WuvUIZm7h74mQz889tAS/exec";
 
 export interface GoogleSheetsProduct {
   productId: string;
@@ -65,67 +65,82 @@ export interface CreateOrderResponse {
     rowNumber: number;
   }>;
 }
-interface ApiResponse {
+interface ApiResponse<T = any> {
   ok: boolean;
-  data?: {
-    products?: GoogleSheetsProduct[];
-    sales?: GoogleSheetsSale[];
-    orders?: GoogleSheetsOrderResponse[];
-    customers?: GoogleSheetsCustomer[];
-  };
+  data?: T[];           // 關鍵：data 一定是陣列
   error?: string;
 }
+// 創建訂單回傳格式
+export interface CreateOrderResponse {
+  serialNumber: string;
+  items: Array<{
+    code: string;
+    rowNumber: number;
+  }>;
+}
 
+// 更新/出貨 回傳格式（可依需求調整）
+export interface UpdateOrderResponse {
+  serialNumber: string;
+  updatedRows: number[];
+}
+
+export interface ShipmentResponse {
+  shipmentId: string;
+  shippedItems: Array<{
+    orderRowNumber: number;
+    quantity: number;
+  }>;
+}
 // API 操作類型
 export type OrderActionType = 'create' | 'update' | 'shipment';
-
-// 送出訂單 API（新增訂單）
-export const submitOrder = async (orderData:any, action:'create'|'update'|'shipment'='create') => {
-  const qs = new URLSearchParams({
+// 送出訂單 API（新增）
+export const submitOrder = async (
+  orderData: any,
+  action: 'create' | 'update' | 'shipment' = 'create'
+): Promise<ApiResponse<CreateOrderResponse | UpdateOrderResponse | ShipmentResponse>> => {
+  const params = new URLSearchParams({
     action,
-    orderData: JSON.stringify(orderData)
   });
 
-  const res = await fetch(`${API_URL}?${qs.toString()}`, { method: "GET" });
-  return res.json();
+  if (action === 'create' || action === 'update') {
+    params.append('orderData', JSON.stringify(orderData));
+  } else if (action === 'shipment') {
+    params.append('shipmentData', JSON.stringify(orderData));
+  }
+
+  const res = await fetch(`${API_URL}?${params.toString()}`, { method: "GET" });
+  return res.json(); // 回傳 { ok, data: [...], error? }
 };
 
-// 預留：更新訂單 API
-export const updateOrder = async (serialNumber:string, orderData:any) => {
-  const qs = new URLSearchParams({
-    action: "update",
-    serialNumber,
-    orderData: JSON.stringify(orderData)
-  });
-
-  const res = await fetch(`${API_URL}?${qs.toString()}`, { method:"GET" });
-  return res.json();
+// 專用：建立訂單
+export const createOrder = async (orderData: any): Promise<CreateOrderResponse[]> => {
+  const response = await submitOrder(orderData, 'create');
+  if (!response.ok) throw new Error(response.error || '建立訂單失敗');
+  return response.data as CreateOrderResponse[];
 };
 
-
-// 預留：銷售出貨 API
-export const submitShipment = async (shipmentData:any) => {
-  const qs = new URLSearchParams({
-    action: "shipment",
-    shipmentData: JSON.stringify(shipmentData)
-  });
-
-  const res = await fetch(`${API_URL}?${qs.toString()}`, { method:"GET" });
-  return res.json();
+// 專用：更新訂單
+export const updateOrder = async (serialNumber: string, orderData: any): Promise<UpdateOrderResponse[]> => {
+  const response = await submitOrder({ serialNumber, orderData }, 'update');
+  if (!response.ok) throw new Error(response.error || '更新失敗');
+  return response.data as UpdateOrderResponse[];
 };
 
-export const fetchGoogleSheetsData = async (
-  type: 'products' | 'sales' | 'orders' | 'customers' | 'all' = 'all'
-): Promise<ApiResponse> => {
+// 專用：出貨
+export const submitShipment = async (shipmentData: any): Promise<ShipmentResponse[]> => {
+  const response = await submitOrder(shipmentData, 'shipment');
+  if (!response.ok) throw new Error(response.error || '出貨失敗');
+  return response.data as ShipmentResponse[];
+};
+
+// fetch 系列保持不變，但加強型別
+export const fetchGoogleSheetsData = async <T extends keyof DataMap>(
+  type: T = 'all' as T
+): Promise<ApiResponse<DataMap[T]>> => {
   try {
-    const qs = new URLSearchParams({
-      action: "fetch",
-      type,
-    });
-
-    const response = await fetch(`${API_URL}?${qs.toString()}`, {
-      method: "GET",
-    });
+    const qs = new URLSearchParams({ action: "fetch", type });
+    const response = await fetch(`${API_URL}?${qs.toString()}`, { method: "GET" });
 
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -139,27 +154,35 @@ export const fetchGoogleSheetsData = async (
   }
 };
 
+// 輔助型別映射
+type DataMap = {
+  products: GoogleSheetsProduct;
+  sales: GoogleSheetsSale;
+  orders: GoogleSheetsOrderResponse;
+  customers: GoogleSheetsCustomer;
+  all: never; // all 不回傳特定型別
+};
 
+// 專用 fetch 函數
 export const fetchProducts = async (): Promise<GoogleSheetsProduct[]> => {
-  const response = await fetchGoogleSheetsData('products');
-  return response.data?.products || [];
+  const res = await fetchGoogleSheetsData('products');
+  return res.ok ? (res.data || []) : [];
 };
 
 export const fetchSales = async (): Promise<GoogleSheetsSale[]> => {
-  const response = await fetchGoogleSheetsData('sales');
-  return response.data?.sales || [];
+  const res = await fetchGoogleSheetsData('sales');
+  return res.ok ? (res.data || []) : [];
 };
 
 export const fetchOrders = async (): Promise<GoogleSheetsOrderResponse[]> => {
-  const response = await fetchGoogleSheetsData('orders');
-  return response.data?.orders || [];
+  const res = await fetchGoogleSheetsData('orders');
+  return res.ok ? (res.data || []) : [];
 };
 
 export const fetchCustomers = async (): Promise<GoogleSheetsCustomer[]> => {
-  const response = await fetchGoogleSheetsData('customers');
-  return response.data?.customers || [];
+  const res = await fetchGoogleSheetsData('customers');
+  return res.ok ? (res.data || []) : [];
 };
-
 // 客戶資料介面
 export interface GoogleSheetsCustomer {
   state: string;

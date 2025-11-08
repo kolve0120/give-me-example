@@ -40,7 +40,7 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
     if (products.length === 0 && !isLoadingProducts) {
       loadProductsFromApi();
     }
-  }, [products, isLoadingProducts, loadProductsFromApi]);
+  }, []);
 
   const [quickSearch, setQuickSearch] = useState("");
   const [selectedVendors, setSelectedVendors] = useState<string[]>([]);

@@ -2,7 +2,7 @@
 import { StateCreator } from 'zustand';
 import { fetchCustomers } from '@/services/googleSheetsApi';
 import { Customer } from '@/types';
-
+import { toast } from 'sonner';
 export interface CustomerSlice {
   // State
   customers: Customer[];
@@ -33,12 +33,11 @@ export const createCustomerSlice: StateCreator<CustomerSlice> = (set) => ({
     set({ isLoadingCustomers: true });
     try {
       const apiCustomers = await fetchCustomers();
-      console.log("API 客戶資料:", apiCustomers);
-      
+
       const formattedCustomers: Customer[] = apiCustomers.map((c, index) => ({
-        id: `c${index + 1}`,
-        name: c.customerName,
+        id: c.customerCode || `c${index + 1}`, // 優先用 code
         code: c.customerCode,
+        name: c.customerName,
         storeName: c.storeName,
         chainStoreName: c.chainStoreName,
       }));
@@ -46,6 +45,7 @@ export const createCustomerSlice: StateCreator<CustomerSlice> = (set) => ({
       set({ customers: formattedCustomers, isLoadingCustomers: false });
     } catch (error) {
       console.error('Failed to load customers from API:', error);
+      toast.error("載入客戶失敗");
       set({ isLoadingCustomers: false });
     }
   },

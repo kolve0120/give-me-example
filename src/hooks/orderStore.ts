@@ -51,7 +51,8 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
       
       const products = getProducts();
       const customers = getCustomers();
-
+      const productMap = new Map(products.map(p => [p.code, p]));
+      const customerMap = new Map(customers.map(c => [c.code, c]));
       const formattedOrders: Order[] = sheetOrders.map((apiOrder) => {
         // 用 code 找客戶完整資料
         const fullCustomer = customers.find((c: Customer) => 

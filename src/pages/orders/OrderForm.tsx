@@ -8,7 +8,7 @@ import { Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTabStore } from "@/stores/tabStore";
 import { useStore } from "@/hooks/useStore";
-import { updateOrder,submitOrder , } from "@/services/googleSheetsApi";
+import { updateOrder,createOrder , } from "@/services/googleSheetsApi";
 
 interface OrderFormProps {
   tabId: string;
@@ -48,35 +48,53 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
       },
       timestamp: new Date().toISOString(),
     };
-    
-    // 從本地存儲讀取現有訂單
+
+    // 從 localStorage 讀取
     const savedOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-    
-if (isEditMode && serialNumber) {
-  const updatedOrders = savedOrders.map((order: any) => 
-    order.orderInfo?.serialNumber === serialNumber ? orderToSave : order
-  );
 
-  // ✅ 更新 localStorage
-  localStorage.setItem('pendingOrders', JSON.stringify(updatedOrders));
+    try {
+      let apiResult;
 
-  // ✅ 同步更新 store → 這樣 UI 才會刷新
-  //orderStore.orders = [...updatedOrders];
-  //updateOrder(updateOrders)
-  toast.success(`訂單 ${serialNumber} 已更新`);
-} else {
-      // 新增模式：添加新訂單
-      savedOrders.push(orderToSave);
-      //localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
-      toast.success("訂單已新增");
+      if (isEditMode && serialNumber) {
+        // === 更新模式 ===
+        const updatedOrders = savedOrders.map((order: any) =>
+          order.orderInfo?.serialNumber === serialNumber ? orderToSave : order
+        );
+
+        // 更新 localStorage
+        localStorage.setItem('pendingOrders', JSON.stringify(updatedOrders));
+
+        // 呼叫 update API
+        apiResult = await updateOrder(serialNumber, orderToSave); // 使用專用函數
+
+        toast.success(`訂單 ${serialNumber} 已更新`);
+      } else {
+        // === 新增模式 ===
+        savedOrders.push(orderToSave);
+        localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
+
+        // 呼叫 create API
+        apiResult = await createOrder(orderToSave); // 使用專用函數
+
+        toast.success("訂單已新增");
+      }
+
+      // === 成功後印出 Google Sheets 回傳的 rowNumber ===
+      apiResult.forEach(order => {
+        console.log('訂單', order.serialNumber);
+        order.items.forEach(item => {
+          console.log(`品項 ${item.code} 在第 ${item.rowNumber} 列`);
+        });
+      });
+
+      // 清除表單 + 關閉 tab
+      clearOrderData(tabId);
+      closeTab(tabId);
+
+    } catch (error: any) {
+      toast.error(error.message || "保存失敗");
+      console.error("Submit order error:", error);
     }
-    
-    console.log("訂單已保存", orderToSave);
-    // TODO: 調用 API 保存到 Google Sheets
-    await submitOrder(orderToSave, isEditMode ? 'update' : 'create');
-    
-    clearOrderData(tabId);
-    closeTab(tabId);
   };
 
   const handleClearAll = () => {
