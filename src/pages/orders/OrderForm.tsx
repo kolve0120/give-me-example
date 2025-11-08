@@ -8,7 +8,7 @@ import { Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTabStore } from "@/stores/tabStore";
 import { useStore } from "@/hooks/useStore";
-import { updateOrder } from "@/services/googleSheetsApi";
+import { updateOrder,submitOrder , } from "@/services/googleSheetsApi";
 
 interface OrderFormProps {
   tabId: string;
@@ -21,10 +21,7 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
   const currentTab = tabs.find(t => t.id === tabId);
   const isEditMode = currentTab?.type === 'order-edit';
   const serialNumber = currentTab?.orderSerialNumber;
-  
-  console.log("OrderForm 訂單數據", orderData, "編輯模式:", isEditMode); 
-  
-  const handleSubmitOrder = () => {
+  const handleSubmitOrder = async () => {
     if (!orderData?.selectedCustomer) {
       toast.error("請先選擇客戶");
       return;
@@ -70,13 +67,13 @@ if (isEditMode && serialNumber) {
 } else {
       // 新增模式：添加新訂單
       savedOrders.push(orderToSave);
-      localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
+      //localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));
       toast.success("訂單已新增");
     }
     
     console.log("訂單已保存", orderToSave);
     // TODO: 調用 API 保存到 Google Sheets
-    // await submitOrder(orderToSave, isEditMode ? 'update' : 'create');
+    await submitOrder(orderToSave, isEditMode ? 'update' : 'create');
     
     clearOrderData(tabId);
     closeTab(tabId);

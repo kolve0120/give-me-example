@@ -87,6 +87,7 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
             remark: product?.remark || '',
             status: '待處理', // 品項預設狀態
             shippedQuantity: 0,
+            rowNumber: saleItem.rowNumber,
           };
         });
 

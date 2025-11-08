@@ -1,5 +1,5 @@
 /* src/services/googleSheetsApi.ts */
-const API_URL = "https://script.google.com/macros/s/AKfycbxBOu23aufSw47VxB-oDMi_gFZPGTp5xMTBCXJwByupSZ79qHs5mRj6xJDsT7grqYaE/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwbt8_BP3Ipa6nf7SgJJbS2SAgtAI-pVTf5X8I2kkQr6okNwT9tYm46qQAv6EqgT893/exec";
 
 export interface GoogleSheetsProduct {
   productId: string;
@@ -49,6 +49,7 @@ export interface GoogleSheetsOrderResponse {
     code: string;
     priceDistribution: number;
     quantity: number;
+    rowNumber: number;
   }>;
   orderInfo: {
     date: string;
@@ -57,7 +58,13 @@ export interface GoogleSheetsOrderResponse {
     remark?: string;
   };
 }
-
+export interface CreateOrderResponse {
+  serialNumber: string;
+  items: Array<{
+    code: string;
+    rowNumber: number;
+  }>;
+}
 interface ApiResponse {
   ok: boolean;
   data?: {
@@ -72,72 +79,66 @@ interface ApiResponse {
 // API 操作類型
 export type OrderActionType = 'create' | 'update' | 'shipment';
 
-// 預留：送出訂單 API（新增訂單）
-export const submitOrder = async (orderData: any, action: OrderActionType = 'create'): Promise<ApiResponse> => {
-  try {
-    // TODO: 實作送出訂單到 Google Sheets
-    console.log('Submit order:', { action, orderData });
-    return { ok: true, data: {} };
-  } catch (error) {
-    console.error('Error submitting order:', error);
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
+// 送出訂單 API（新增訂單）
+export const submitOrder = async (orderData:any, action:'create'|'update'|'shipment'='create') => {
+  const qs = new URLSearchParams({
+    action,
+    orderData: JSON.stringify(orderData)
+  });
+
+  const res = await fetch(`${API_URL}?${qs.toString()}`, { method: "GET" });
+  return res.json();
 };
 
 // 預留：更新訂單 API
-export const updateOrder = async (serialNumber: string, orderData: any): Promise<ApiResponse> => {
-  try {
-    // TODO: 實作更新訂單到 Google Sheets
-    console.log('Update order:', { serialNumber, orderData });
-    return { ok: true, data: {} };
-  } catch (error) {
-    console.error('Error updating order:', error);
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
+export const updateOrder = async (serialNumber:string, orderData:any) => {
+  const qs = new URLSearchParams({
+    action: "update",
+    serialNumber,
+    orderData: JSON.stringify(orderData)
+  });
+
+  const res = await fetch(`${API_URL}?${qs.toString()}`, { method:"GET" });
+  return res.json();
 };
+
 
 // 預留：銷售出貨 API
-export const submitShipment = async (shipmentData: any): Promise<ApiResponse> => {
-  try {
-    // TODO: 實作銷售出貨到 Google Sheets
-    console.log('Submit shipment:', shipmentData);
-    return { ok: true, data: {} };
-  } catch (error) {
-    console.error('Error submitting shipment:', error);
-    return {
-      ok: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
+export const submitShipment = async (shipmentData:any) => {
+  const qs = new URLSearchParams({
+    action: "shipment",
+    shipmentData: JSON.stringify(shipmentData)
+  });
+
+  const res = await fetch(`${API_URL}?${qs.toString()}`, { method:"GET" });
+  return res.json();
 };
 
-export const fetchGoogleSheetsData = async (type: 'products' | 'sales' | 'orders' | 'customers' | 'all' = 'all'): Promise<ApiResponse> => {
+export const fetchGoogleSheetsData = async (
+  type: 'products' | 'sales' | 'orders' | 'customers' | 'all' = 'all'
+): Promise<ApiResponse> => {
   try {
-    const url = `${API_URL}?type=${type}`;
-    const response = await fetch(url, {
-      method: 'GET',
+    const qs = new URLSearchParams({
+      action: "fetch",
+      type,
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    const response = await fetch(`${API_URL}?${qs.toString()}`, {
+      method: "GET",
+    });
 
-    const data = await response.json();
-    return data;
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+    return await response.json();
   } catch (error) {
-    console.error('Error fetching Google Sheets data:', error);
+    console.error("Error fetching Google Sheets data:", error);
     return {
       ok: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 };
+
 
 export const fetchProducts = async (): Promise<GoogleSheetsProduct[]> => {
   const response = await fetchGoogleSheetsData('products');
