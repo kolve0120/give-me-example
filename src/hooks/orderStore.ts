@@ -44,7 +44,7 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
     set({ isLoadingOrders: true });
     try {
       const sheetOrders = await fetchOrders();
-      
+      console.log("apisheetOrders:",sheetOrders)
       // 動態獲取最新的 products 和 customers
       const getProducts = () => (window as any).__globalStore?.getState().products || [];
       const getCustomers = () => (window as any).__globalStore?.getState().customers || [];
@@ -103,8 +103,17 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
           items,
         };
       });
+      console.log("取得訂單",formattedOrders)
+set(state => ({
+  orders: [
+    ...state.orders.filter(o => !formattedOrders.some(n => n.orderInfo.serialNumber === o.orderInfo.serialNumber)),
+    ...formattedOrders
+  ],
+  isLoadingOrders: false
+}));
 
-      set({ orders: formattedOrders, isLoadingOrders: false });
+
+      /*set({ orders: formattedOrders, isLoadingOrders: false });*/
     } catch (error) {
       console.error("Failed to load orders:", error);
       set({ isLoadingOrders: false });

@@ -8,6 +8,7 @@ import { Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTabStore } from "@/stores/tabStore";
 import { useStore } from "@/hooks/useStore";
+import { updateOrder } from "@/services/googleSheetsApi";
 
 interface OrderFormProps {
   tabId: string;
@@ -54,14 +55,19 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
     // 從本地存儲讀取現有訂單
     const savedOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
     
-    if (isEditMode && serialNumber) {
-      // 編輯模式：更新現有訂單
-      const updatedOrders = savedOrders.map((order: any) => 
-        order.orderInfo?.serialNumber === serialNumber ? orderToSave : order
-      );
-      localStorage.setItem('pendingOrders', JSON.stringify(updatedOrders));
-      toast.success(`訂單 ${serialNumber} 已更新`);
-    } else {
+if (isEditMode && serialNumber) {
+  const updatedOrders = savedOrders.map((order: any) => 
+    order.orderInfo?.serialNumber === serialNumber ? orderToSave : order
+  );
+
+  // ✅ 更新 localStorage
+  localStorage.setItem('pendingOrders', JSON.stringify(updatedOrders));
+
+  // ✅ 同步更新 store → 這樣 UI 才會刷新
+  //orderStore.orders = [...updatedOrders];
+  //updateOrder(updateOrders)
+  toast.success(`訂單 ${serialNumber} 已更新`);
+} else {
       // 新增模式：添加新訂單
       savedOrders.push(orderToSave);
       localStorage.setItem('pendingOrders', JSON.stringify(savedOrders));

@@ -79,6 +79,8 @@ export const useOrderEditStore = create<OrderEditState>((set, get) => ({
   },
 
   loadOrder: (order) => {
+    console.log("Loading order for edit:", order);
+   
     set({
       editingOrder: order,
       selectedCustomer: order.orderInfo?.customer || null,
