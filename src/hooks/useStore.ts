@@ -6,6 +6,7 @@ import { ProductSlice, createProductSlice } from './productStore';
 import { SalesSlice, createSalesSlice } from './salesStore';
 import { OrderSlice, createOrderSlice } from './orderStore';
 import { UISlice, createUISlice } from './uiStore';
+import { AuthSlice, createAuthSlice } from './authStore';
 
 // 重新導出類型,讓其他檔案可以直接從 useStore 導入
 export type { Customer, Product, SalesItem, Order, OrderInfo } from '@/types';
@@ -15,7 +16,8 @@ type StoreState = CustomerSlice &
   ProductSlice & 
   SalesSlice & 
   OrderSlice & 
-  UISlice & {
+  UISlice &
+  AuthSlice & {
     // 額外的全域方法
     clearAll: () => void;
     getProductPrice: (productCode: string) => number;
@@ -32,6 +34,7 @@ export const useStore = create<StoreState>()(
       ...createSalesSlice(set, get, {} as any),
       ...createOrderSlice(set, get, {} as any),
       ...createUISlice(set, get, {} as any),
+      ...createAuthSlice(set, get, {} as any),
 
       // 覆寫 setSelectedCustomer 以處理價格重算
       setSelectedCustomer: (customer) => {

@@ -5,18 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import { Dashboard } from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-import { useStore } from './hooks/useStore';
+import { UserManagement } from "./pages/UserManagement";
+import { CombinedQuery } from "./pages/CombinedQuery";
 
 const queryClient = new QueryClient();
-import { useEffect } from "react";
 
 const App = () => {
-  useEffect(() => {
-    useStore.getState().loadProductsFromApi();
-    useStore.getState().loadCustomersFromApi();
-    useStore.getState().loadOrdersFromApi();
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -24,6 +18,8 @@ const App = () => {
         <HashRouter>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/user-management" element={<UserManagement />} />
+            <Route path="/combined-query" element={<CombinedQuery />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

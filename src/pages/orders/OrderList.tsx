@@ -23,28 +23,26 @@ export const OrderList = ({ onLoadOrder }: OrderListProps) => {
   const [batchMode, setBatchMode] = useState(false);
   const [shipmentInputs, setShipmentInputs] = useState<Record<string, number>>({});
 
-  useEffect(() => {
-    // 優先從 localStorage 載入，避免重複 API 調用
-    loadOrders();
-  }, []);
-
-  const loadOrders = () => {
-    const saved = JSON.parse(localStorage.getItem("pendingOrders") || "[]");
-    setOrders(saved);
-  };
+  // 移除 localStorage 處理，直接使用 store 的 orders
 
   const handleEdit = (order: any) => {
     onLoadOrder?.(order);
     toast.success("訂單已載入至編輯頁面");
   };
 
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    const updated = orders.map((o) =>
-      o.id === orderId ? { ...o, orderInfo: { ...o.orderInfo, status: newStatus } } : o
-    );
+  const handleStatusChange = (orderId: string, itemIndex: number, newStatus: string) => {
+    const updated = orders.map((o) => {
+      if (o.id === orderId) {
+        const updatedItems = o.items?.map((item, idx) => 
+          idx === itemIndex ? { ...item, status: newStatus } : item
+        );
+        return { ...o, items: updatedItems };
+      }
+      return o;
+    });
     setOrders(updated);
-    localStorage.setItem("pendingOrders", JSON.stringify(updated));
-    toast.success("訂單狀態已更新");
+    // TODO: 呼叫 API 更新狀態
+    toast.success("品項狀態已更新");
   };
 
   const filteredOrders = useMemo(() => {
@@ -150,12 +148,9 @@ export const OrderList = ({ onLoadOrder }: OrderListProps) => {
       return;
     }
 
-    // 儲存到 localStorage
-    const existing = JSON.parse(localStorage.getItem("shippedOrders") || "[]");
-    localStorage.setItem("shippedOrders", JSON.stringify([...existing, ...shipments]));
-
-    toast.success(`成功出貨 ${shipments.length} 位客戶`);
+    // TODO: 呼叫 API 送出出貨資料
     console.log("出貨資料", shipments);
+    toast.success(`成功出貨 ${shipments.length} 位客戶`);
 
     setShipmentInputs({});
     setBatchMode(false);

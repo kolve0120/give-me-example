@@ -15,7 +15,7 @@ import { toast } from "sonner";
 type OrderViewProps = {
   filteredOrders: any[];
   onEdit: (order: any) => void;
-  onStatusChange: (orderId: string, status: string) => void;
+  onStatusChange: (orderId: string, itemIndex: number, status: string) => void;
 };
 
 export const OrderView = ({ filteredOrders, onEdit, onStatusChange }: OrderViewProps) => {
@@ -66,6 +66,7 @@ export const OrderView = ({ filteredOrders, onEdit, onStatusChange }: OrderViewP
                     <TableHead className="text-right">數量</TableHead>
                     <TableHead className="text-right">單價</TableHead>
                     <TableHead className="text-right">小計</TableHead>
+                    <TableHead className="text-right">狀態</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -79,6 +80,22 @@ export const OrderView = ({ filteredOrders, onEdit, onStatusChange }: OrderViewP
                       <TableCell className="text-right">
                         NT$ {item.totalPrice.toLocaleString()}
                       </TableCell>
+                      <TableCell className="text-right">
+                        <Select
+                          value={item.status || "待處理"}
+                          onValueChange={(v) => onStatusChange(order.id, idx, v)}
+                        >
+                          <SelectTrigger className="w-28">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="待處理">待處理</SelectItem>
+                            <SelectItem value="處理中">處理中</SelectItem>
+                            <SelectItem value="已出貨">已出貨</SelectItem>
+                            <SelectItem value="已完成">已完成</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -88,21 +105,6 @@ export const OrderView = ({ filteredOrders, onEdit, onStatusChange }: OrderViewP
                   <Edit className="w-4 h-4 mr-1" />
                   編輯
                 </Button>
-                <Select
-                  value={order.orderInfo?.status || "待處理"}
-                  onValueChange={(v) => onStatusChange(order.id, v)}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="待處理">待處理</SelectItem>
-                    <SelectItem value="處理中">處理中</SelectItem>
-                    <SelectItem value="已出貨">已出貨</SelectItem>
-                    <SelectItem value="已完成">已完成</SelectItem>
-                    <SelectItem value="已取消">已取消</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </AccordionContent>
           </AccordionItem>

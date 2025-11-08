@@ -298,6 +298,8 @@ export const Dashboard = () => {
           </div>
         </div>
       </div>
+      
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </div>
   );
 };
