@@ -83,39 +83,45 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
   // 顯示建議
   const showSuggestions = (field: keyof typeof suggestions) => {
     setActiveField(field);
-    
-    switch (field) {
-      case 'name':
-        setSuggestions(prev => ({
-          ...prev,
-          name: customers.map(c => c.name),
-        }));
-        break;
-      case 'code':
-        setSuggestions(prev => ({
-          ...prev,
-          code: customers.map(c => c.code),
-        }));
-        break;
-      case 'storeName':
-        const storeNames = customerForm.chainStoreName
-          ? customers
-              .filter(c => c.chainStoreName === customerForm.chainStoreName)
-              .map(c => c.storeName || "")
-          : [...new Set(customers.map(c => c.storeName || ""))];
-        setSuggestions(prev => ({
-          ...prev,
-          storeName: storeNames.filter(Boolean),
-        }));
-        break;
-      case 'chainStoreName':
-        setSuggestions(prev => ({
-          ...prev,
-          chainStoreName: [...new Set(customers.map(c => c.chainStoreName || ""))].filter(Boolean),
-        }));
-        break;
-    }
-  };
+    setSuggestions({
+    name: [],
+    code: [],
+    storeName: [],
+    chainStoreName: [],
+   });
+     console.log('=== showSuggestions Debug ===');
+  console.log('Field:', field);
+  console.log('Total customers:', customers.length);
+  console.log('Customers:', customers);
+   // 然後再根據 field 填入對應的建議
+  let list: string[] = [];
+   switch (field) {
+    case 'name':
+       list = [...new Set(customers.map(c => c.name))]
+      break;
+    case 'code':
+       list = [...new Set(customers.map(c => c.code))]
+      break;
+    case 'chainStoreName':
+      list = [...new Set(customers.map(c => c.chainStoreName || "").filter(Boolean))];
+      break;
+    case 'storeName':
+      if (customerForm.chainStoreName) {
+        list = customers
+          .filter(c => c.chainStoreName === customerForm.chainStoreName)
+          .map(c => c.storeName || "")
+          .filter(Boolean);
+      } else {
+        list = [...new Set(customers.map(c => c.storeName || "").filter(Boolean))];
+      }
+      break;
+  }
+
+  setSuggestions(prev => ({
+    ...prev,
+    [field]: list,
+  }));
+};
 
   // 篩選建議
   const filterSuggestions = (field: keyof typeof suggestions, value: string) => {
@@ -287,6 +293,7 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
             <Label htmlFor="customerName">客戶名稱</Label>
             <Input
               id="customerName"
+              autoComplete="off"
               value={customerForm.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               onFocus={() => showSuggestions('name')}
@@ -312,6 +319,7 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
             <Label htmlFor="customerCode">客戶編號</Label>
             <Input
               id="customerCode"
+              autoComplete="off"
               value={customerForm.code}
               onChange={(e) => handleInputChange('code', e.target.value)}
               onFocus={() => showSuggestions('code')}
@@ -353,6 +361,7 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
             <div className="space-y-2 relative">
               <Label htmlFor="chainStoreName">連鎖店名</Label>
               <Input
+                autoComplete="off"
                 id="chainStoreName"
                 value={customerForm.chainStoreName || ""}
                 onChange={(e) => handleInputChange('chainStoreName', e.target.value)}
@@ -378,6 +387,7 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
             <div className="space-y-2 relative">
               <Label htmlFor="storeName">店家名稱</Label>
               <Input
+                autoComplete="off"
                 id="storeName"
                 value={customerForm.storeName || ""}
                 onChange={(e) => handleInputChange('storeName', e.target.value)}

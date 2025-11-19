@@ -87,7 +87,7 @@ export const useStore = create<StoreState>()(
             model: product?.model || item.model || '',
             vender: product?.vender || '',
             series: product?.series || '',
-            remark: item.remark || product?.colors || '',
+            remark: item.remark || '',
           };
         });
       },
