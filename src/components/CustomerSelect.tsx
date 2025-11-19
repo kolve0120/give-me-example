@@ -1,9 +1,10 @@
 // CustomerSelect.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AutocompleteInput } from "@/components/AutocompleteInput";
 import { useStore } from "@/hooks/useStore";
 import { useTabStore } from "@/stores/tabStore";
 import { Customer } from "@/types";
@@ -31,18 +32,6 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
     storeName: "",
     chainStoreName: "",
   });
-  const [suggestions, setSuggestions] = useState<{
-    name: string[];
-    code: string[];
-    storeName: string[];
-    chainStoreName: string[];
-  }>({
-    name: [],
-    code: [],
-    storeName: [],
-    chainStoreName: [],
-  });
-  const [activeField, setActiveField] = useState("");
 
   // 當選擇的客戶改變時，更新表單
   useEffect(() => {
@@ -207,14 +196,26 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
     toast.success(`已選擇客戶: ${customer.name}`);
   };
 
-  // 處理表單輸入
-  const handleInputChange = (field: keyof Customer, value: string) => {
-    setCustomerForm(prev => ({ ...prev, [field]: value }));
-    
-    if (field === 'name' || field === 'code') {
-      filterSuggestions(field, value);
-    } else if (field === 'storeName' || field === 'chainStoreName') {
-      filterSuggestions(field, value);
+  // 處理選擇建議
+  const handleSelectName = (value: string) => {
+    const customer = customers.find(c => c.name === value);
+    if (customer) selectCustomer(customer);
+  };
+
+  const handleSelectCode = (value: string) => {
+    const customer = customers.find(c => c.code === value);
+    if (customer) selectCustomer(customer);
+  };
+
+  const handleSelectStore = () => {
+    const customer = customers.find(c =>
+      c.storeName === customerForm.storeName && 
+      c.chainStoreName === customerForm.chainStoreName
+    );
+    if (customer) {
+      selectCustomer(customer);
+    } else {
+      setCustomerForm(prev => ({ ...prev, name: "", code: "" }));
     }
   };
 
@@ -289,57 +290,25 @@ export const CustomerSelect = ({ tabId }: CustomerSelectProps) => {
 
         {/* 客戶名稱和編號 */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2 relative">
-            <Label htmlFor="customerName">客戶名稱</Label>
-            <Input
-              id="customerName"
-              autoComplete="off"
-              value={customerForm.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              onFocus={() => showSuggestions('name')}
-              placeholder="輸入客戶名稱"
-              className="input-elegant"
-            />
-            {suggestions.name.length > 0 && activeField === 'name' && (
-              <div className="absolute top-full left-0 right-0 bg-popover border rounded-md shadow-md z-50 max-h-40 overflow-auto animate-slide-up">
-                {suggestions.name.map((name, index) => (
-                  <div
-                    key={index}
-                    className="px-3 py-2 hover:bg-accent cursor-pointer text-sm"
-                    onClick={() => selectSuggestion('name', name)}
-                  >
-                    {name}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <AutocompleteInput
+            label="客戶名稱"
+            id="customerName"
+            value={customerForm.name}
+            onChange={(value) => setCustomerForm(prev => ({ ...prev, name: value }))}
+            onSelect={handleSelectName}
+            suggestions={nameSuggestions}
+            placeholder="輸入客戶名稱"
+          />
           
-          <div className="space-y-2 relative">
-            <Label htmlFor="customerCode">客戶編號</Label>
-            <Input
-              id="customerCode"
-              autoComplete="off"
-              value={customerForm.code}
-              onChange={(e) => handleInputChange('code', e.target.value)}
-              onFocus={() => showSuggestions('code')}
-              placeholder="輸入客戶編號"
-              className="input-elegant"
-            />
-            {suggestions.code.length > 0 && activeField === 'code' && (
-              <div className="absolute top-full left-0 right-0 bg-popover border rounded-md shadow-md z-50 max-h-40 overflow-auto animate-slide-up">
-                {suggestions.code.map((code, index) => (
-                  <div
-                    key={index}
-                    className="px-3 py-2 hover:bg-accent cursor-pointer text-sm"
-                    onClick={() => selectSuggestion('code', code)}
-                  >
-                    {code}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <AutocompleteInput
+            label="客戶編號"
+            id="customerCode"
+            value={customerForm.code}
+            onChange={(value) => setCustomerForm(prev => ({ ...prev, code: value }))}
+            onSelect={handleSelectCode}
+            suggestions={codeSuggestions}
+            placeholder="輸入客戶編號"
+          />
         </div>
 
         {/* 店家詳細資訊開關 */}
