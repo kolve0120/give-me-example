@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useStore } from "@/hooks/useStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,36 +41,33 @@ export const SalesList = () => {
   const [sales, setSales] = useState<SaleItem[]>([]);
   const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>({});
 
-  // 從本地存儲載入銷售資料
+  // 從 store 載入銷售資料
+  const { orders, loadOrdersFromApi } = useStore();
+  
   useEffect(() => {
-    const loadSalesFromLocal = () => {
-      const savedOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
-      const salesData: SaleItem[] = savedOrders.flatMap((order: any) => 
-        order.items.map((item: any) => ({
-          id: `${order.id}-${item.id}`,
-          orderId: order.id,
-          serialNumber: order.orderInfo.serialNumber || order.id,
-          date: order.orderInfo.date || new Date(order.timestamp).toLocaleDateString('zh-TW'),
-          customer: order.customer?.name || order.orderInfo.customer?.name || '未知客戶',
-          productName: `${item.vender} ${item.series}`,
-          productModel: item.model || '',
-          quantity: item.quantity,
-          priceDistribution: item.priceDistribution,
-          totalPrice: item.totalPrice,
-          status: order.orderInfo.status || '待處理',
-        }))
-      );
-      setSales(salesData);
-    };
-
-    loadSalesFromLocal();
+    // 初次載入時從 API 取得訂單
+    if (orders.length === 0) {
+      loadOrdersFromApi();
+    }
     
-    // TODO: 從數據庫載入
-    // const loadSalesFromDatabase = async () => {
-    //   const data = await fetchSalesFromDatabase();
-    //   setSales(data);
-    // };
-  }, []);
+    // 將訂單轉換為銷售記錄格式
+    const salesData: SaleItem[] = orders.flatMap((order: any) => 
+      (order.items || []).map((item: any, idx: number) => ({
+        id: `${order.id}-${idx}`,
+        orderId: order.id,
+        serialNumber: order.orderInfo?.serialNumber || order.id,
+        date: order.orderInfo?.date || new Date().toLocaleDateString('zh-TW'),
+        customer: order.customer?.name || order.selectedCustomer?.name || '未知客戶',
+        productName: `${item.vender || ''} ${item.series || ''}`.trim() || item.name,
+        productModel: item.model || '',
+        quantity: item.quantity || 0,
+        priceDistribution: item.priceDistribution || 0,
+        totalPrice: item.totalPrice || 0,
+        status: item.status || order.orderInfo?.status || '待處理',
+      }))
+    );
+    setSales(salesData);
+  }, [orders, loadOrdersFromApi]);
 
   // 過濾並分組
   const filteredSales = useMemo(() => {

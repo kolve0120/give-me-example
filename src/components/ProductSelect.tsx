@@ -178,6 +178,7 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
     const price = product.priceDistribution || product.priceRetail;
     const newItem = {
       ...product,
+      id: product.id || product.code,  // 確保有 id
       quantity,
       priceDistribution: price,
       totalPrice: quantity * price,

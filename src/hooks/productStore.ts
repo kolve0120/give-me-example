@@ -53,7 +53,7 @@ export const createProductSlice: StateCreator<ProductSlice> = (set, get) => ({
       const apiProducts = await fetchProducts();
       
       const formattedProducts: Product[] = apiProducts.map((p, index) => ({
-        id: index + 1,
+        id: p.productId ? Number(p.productId) : index + 1,  // 使用 productId 作為 id
         code: p.productId,
         name: p.name,
         series: p.series,

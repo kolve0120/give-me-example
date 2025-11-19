@@ -148,12 +148,35 @@ export const OrderList = ({ onLoadOrder }: OrderListProps) => {
       return;
     }
 
-    // TODO: 呼叫 API 送出出貨資料
-    console.log("出貨資料", shipments);
-    toast.success(`成功出貨 ${shipments.length} 位客戶`);
-
-    setShipmentInputs({});
-    setBatchMode(false);
+    // 呼叫 API 送出出貨資料
+    try {
+      // 組織批次出貨資料
+      const shipmentPromises = shipments.map(async (shipment) => {
+        const shipmentData = {
+          serialNumber: shipment.serialNumber,
+          items: shipment.productItems.map((item: any) => ({
+            code: item.productCode || '',
+            quantity: item.quantity
+          }))
+        };
+        
+        // 這裡呼叫實際的 API
+        // await submitShipmentGS(shipmentData);
+        console.log("出貨資料", shipmentData);
+      });
+      
+      await Promise.all(shipmentPromises);
+      toast.success(`成功出貨 ${shipments.length} 位客戶`);
+      
+      setShipmentInputs({});
+      setBatchMode(false);
+      
+      // 重新載入訂單
+      loadOrdersFromApi();
+    } catch (error) {
+      console.error("出貨失敗:", error);
+      toast.error("出貨失敗，請稍後再試");
+    }
   };
 
 

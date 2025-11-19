@@ -94,7 +94,8 @@ export const useTabStore = create<TabStoreState>()(
         const newTabId = `edit-${serialNumber}`;
         const orderData: OrderTabData = {
           selectedCustomer: order.selectedCustomer,
-          salesItems: order.salesItems.map((item: any) => ({
+          salesItems: order.salesItems.map((item: any, idx: number) => ({
+            id: item.id || `${item.code}-${idx}`,  // 確保有 id
             code: item.code,
             name: item.name,
             model: item.model,
@@ -105,6 +106,7 @@ export const useTabStore = create<TabStoreState>()(
             totalPrice: item.totalPrice,
             remark: item.remark,
             rowNumber: item.rowNumber,
+            time: item.time || Date.now(),  // 確保有 time
           })),
           orderInfo: order.orderInfo,
         };
