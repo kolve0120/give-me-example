@@ -20,6 +20,8 @@ export interface Order {
 export interface OrderItem {
   name: string;
   model: string;
+  series:string;
+  vender: string;
   code: string;
   quantity: number;
   priceDistribution: number;
@@ -28,3 +30,4 @@ export interface OrderItem {
   status?: string; // 品項狀態：待處理、已出貨、部分出貨等
   shippedQuantity?: number; // 已出貨數量
 }
+

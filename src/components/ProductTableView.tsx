@@ -14,7 +14,7 @@ import { toast } from "sonner";
 interface Product {
   id: number;
   code: string;
-  vendor: string;
+  vender: string;
   name: string;
   series: string;
   remark: string;
@@ -32,7 +32,7 @@ interface ProductTableViewProps {
 interface GroupedProduct {
   code: string;
   series: string;
-  vendor: string;
+  vender: string;
   remark: string;
   priceDistribution: number;
   productId: number;
@@ -63,7 +63,7 @@ export const ProductTableView = ({
         grouped[title].push({
           code: product.code,
           series: product.series,
-          vendor: product.vendor,
+          vender: product.vender,
           remark: product.remark,
           priceDistribution: product.priceDistribution,
           productId: product.id,

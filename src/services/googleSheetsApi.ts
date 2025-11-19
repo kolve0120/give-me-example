@@ -1,13 +1,13 @@
 /* src/services/googleSheetsApi.ts */
-const API_URL = "https://script.google.com/macros/s/AKfycbwLQQsVwT68tc1EuoxVCIGmfFab_r1TBNAR79VzbKxgyVy4WuvUIZm7h74mQz889tAS/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyMg-jOWR-OH2WWfgoUWxtruyHV0KFCfo_1Rz5Vsp7XcaEsAGlFAs0lpU4pfwiTk60x/exec";
 
 export interface GoogleSheetsProduct {
   productId: string;
   status: string;
   code: string;
   name: string;
-  brand: string;
-  seriesList: string;
+  vender: string;
+  series: string;
   model: string;
   colors: string;
   rowNumber: number;
@@ -121,8 +121,8 @@ export const createOrder = async (orderData: any): Promise<CreateOrderResponse[]
 };
 
 // 專用：更新訂單
-export const updateOrder = async (serialNumber: string, orderData: any): Promise<UpdateOrderResponse[]> => {
-  const response = await submitOrder({ serialNumber, orderData }, 'update');
+export const updateOrder = async (orderData: any): Promise<UpdateOrderResponse[]> => {
+  const response = await submitOrder( orderData , 'update');
   if (!response.ok) throw new Error(response.error || '更新失敗');
   return response.data as UpdateOrderResponse[];
 };

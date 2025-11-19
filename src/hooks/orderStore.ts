@@ -68,12 +68,12 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
         };
 
         // 用 code 補齊每個商品的完整資料
+        
         const items: OrderItem[] = apiOrder.salesItems.map((saleItem) => {
           const product = products.find((p: any) => {
             const pCode = p.code || p.productId;
             return pCode === saleItem.code;
           });
-
           const priceDistribution = saleItem.priceDistribution || product?.priceDistribution || 0;
           const quantity = saleItem.quantity || 0;
 
@@ -81,6 +81,8 @@ export const createOrderSlice: StateCreator<OrderSlice> = (set, get) => ({
             code: saleItem.code,
             name: product?.name || saleItem.code,
             model: product?.model || '',
+            series: product?.series || '',
+            vender: product?.vender || '',
             quantity,
             priceDistribution,
             totalPrice: quantity * priceDistribution,

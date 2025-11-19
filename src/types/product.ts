@@ -3,7 +3,7 @@ export interface Product {
   code: string;
   name: string;
   series: string;
-  vendor: string;
+  vender: string;
   remark: string;
   priceDistribution: number;
   priceRetail: number;

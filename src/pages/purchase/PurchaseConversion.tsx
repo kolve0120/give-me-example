@@ -11,7 +11,7 @@ type ProductGroup = {
   productCode: string;
   series: string;
   remark: string;
-  vendor: string;
+  vender: string;
   totalQuantity: number;
   orders: string[];
 };
@@ -76,7 +76,7 @@ export const PurchaseConversion = () => {
             productMap.set(key, {
               productCode: item.code,
               series:  item.name || item.code,
-              vendor: item.list?.vender || '未知廠商',
+              vender: item.list?.vender || '未知廠商',
               remark: item.remark || '',
               totalQuantity: item.quantity || 1,
               orders: [order.orderInfo?.serialNumber || orderId]
@@ -111,15 +111,15 @@ export const PurchaseConversion = () => {
     setSelectedOrders([]);
   };
 
-  const groupByVendor = () => {
-    const vendorMap = new Map<string, ProductGroup[]>();
+  const groupByvender = () => {
+    const venderMap = new Map<string, ProductGroup[]>();
     groupedProducts.forEach(product => {
-      if (!vendorMap.has(product.vendor)) {
-        vendorMap.set(product.vendor, []);
+      if (!venderMap.has(product.vender)) {
+        venderMap.set(product.vender, []);
       }
-      vendorMap.get(product.vendor)!.push(product);
+      venderMap.get(product.vender)!.push(product);
     });
-    return vendorMap;
+    return venderMap;
   };
 
   return (
@@ -210,11 +210,11 @@ export const PurchaseConversion = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {Array.from(groupByVendor().entries()).map(([vendor, products]) => (
-                <div key={vendor} className="space-y-2">
+              {Array.from(groupByvender().entries()).map(([vender, products]) => (
+                <div key={vender} className="space-y-2">
                   <div className="flex items-center gap-2 font-semibold text-lg">
                     <Package className="w-5 h-5" />
-                    <span>{vendor}</span>
+                    <span>{vender}</span>
                   </div>
                   <div className="border rounded-lg overflow-hidden">
                     <Table>

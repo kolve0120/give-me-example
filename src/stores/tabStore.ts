@@ -79,7 +79,6 @@ export const useTabStore = create<TabStoreState>()(
       addEditOrderTab: (order) => {
         const { tabs } = get();
         const serialNumber = order.orderInfo.serialNumber;
-        
         // 檢查是否已存在相同單號的 tab
         const existingTab = tabs.find(
           t => t.type === 'order-edit' && t.orderSerialNumber === serialNumber
@@ -90,15 +89,17 @@ export const useTabStore = create<TabStoreState>()(
           set({ activeTabId: existingTab.id });
           return existingTab.id;
         }
-
+        console.log("原始",order)
         // 創建新的編輯 tab，使用 serialNumber 作為 ID
         const newTabId = `edit-${serialNumber}`;
         const orderData: OrderTabData = {
-          selectedCustomer: order.customer,
-          salesItems: order.items.map((item: any) => ({
+          selectedCustomer: order.selectedCustomer,
+          salesItems: order.salesItems.map((item: any) => ({
             code: item.code,
             name: item.name,
             model: item.model,
+            series:item.series,
+            vender: item.vender,
             quantity: item.quantity,
             priceDistribution: item.priceDistribution,
             totalPrice: item.totalPrice,
@@ -108,6 +109,9 @@ export const useTabStore = create<TabStoreState>()(
           orderInfo: order.orderInfo,
         };
 
+        
+ 
+        console.log("訂單編輯資料",orderData)
         const newTab: TabInfo = {
           id: newTabId,
           type: 'order-edit',

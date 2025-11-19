@@ -6,7 +6,7 @@ import { ShoppingCart } from "lucide-react";
 interface Product {
   id: number;
   code: string;
-  vendor: string;
+  vender: string;
   model: string;
   name: string;
   series: string;
@@ -37,7 +37,7 @@ export const ProductGridView = ({
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <h4 className="font-medium text-xs">
-                      {product.vendor} • {product.series}
+                      {product.vender} • {product.series}
                     </h4>
                   </div>
                   <p className="text-s font-bold text-muted-foreground mt-1">

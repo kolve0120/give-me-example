@@ -94,12 +94,12 @@ const SortableItem = ({
   };
 
   const modelForProduct = useMemo(() => {
-    return Array.from(new Set(products.filter(p => p.vendor === item.vendor && p.series === item.series).map(p => p.model)));
-  }, [products, item.vendor, item.series]);
+    return Array.from(new Set(products.filter(p => p.vender === item.vender && p.series === item.series).map(p => p.model)));
+  }, [products, item.vender, item.series]);
 
   const remarksForSeries = useMemo(() => {
-    return Array.from(new Set(products.filter(p => p.vendor === item.vendor && p.series === item.series && p.model === item.model).map(p => p.remark)));
-  }, [products, item.vendor, item.model, item.series]);
+    return Array.from(new Set(products.filter(p => p.vender === item.vender && p.series === item.series && p.model === item.model).map(p => p.remark)));
+  }, [products, item.vender, item.model, item.series]);
 
   return (
     <div ref={setNodeRef} style={style} className="flex flex-col md:flex-row items-start md:items-center gap-3 p-4 border rounded-lg bg-surface hover:shadow-md transition-shadow touch-none">
@@ -125,7 +125,7 @@ const SortableItem = ({
         <div className="md:hidden space-y-2">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm">{item.vendor} • {item.series}</h4>
+              <h4 className="font-medium text-sm">{item.vender} • {item.series}</h4>
               <Badge variant="outline" className="text-xs mt-1">{item.code}</Badge>
             </div>
           </div>
@@ -167,7 +167,7 @@ const SortableItem = ({
         <div className="hidden md:block">
           <div className="flex items-start justify-between gap-4 mb-2">
             <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm mb-2">{item.vendor} • {item.series}</h4>
+              <h4 className="font-medium text-sm mb-2">{item.vender} • {item.series}</h4>
               <div className="flex items-center gap-2 flex-wrap">
                 {modelForProduct.length > 0 ? (
                   <Select value={item.model} onValueChange={(v) => onModelsChange(index, v)}>
@@ -319,14 +319,20 @@ export const SalesProductList = ({ tabId }: SalesProductListProps) => {
 
   const handleModelsChange = (index: number, model: string) => {
     const item = salesItems[index];
-    const matchingProduct = products.find(p => p.vendor === item.vendor && p.series === item.series && p.model === model);
+    console.log("變更型號為:", model);
+    console.log("其餘商品資料:", item);
+    const matchingProduct = products.find(p => p.vender === item.vender && p.series === item.series && p.model === model&& p.remark === item.remark);
+    console.log("找到的對應產品:", matchingProduct);
     if (matchingProduct) { updateSalesItem(index, { model, remark: matchingProduct.remark, priceDistribution: matchingProduct.priceDistribution, isPriceModified: false ,code: matchingProduct.code}); toast.success("已更新型號與備註");}
   };
 
   const handleRemarkChange = (index: number, remark: string) => {
     const item = salesItems[index];
-    const matchingProduct = products.find(p => p.vendor === item.vendor && p.series === item.series && p.remark === remark);
-    if (matchingProduct) { updateSalesItem(index, { remark, priceDistribution: matchingProduct.priceDistribution, isPriceModified: false,code: matchingProduct.code}); toast.success("已更新備註"); }
+    const matchingProduct = products.find(p => p.vender === item.vender && p.series === item.series && p.remark === remark && p.model === item.model);
+    console.log("找到的對應產品:", matchingProduct);
+    if (matchingProduct) 
+      { updateSalesItem(index, { remark, priceDistribution: matchingProduct.priceDistribution, isPriceModified: false,code: matchingProduct.code}); 
+    toast.success("已更新備註"); }
   };
 
   const handleCopyItem = (index: number) => { const item = salesItems[index]; updateSalesItem(salesItems.length, { ...item, time: Date.now() }); toast.success(`已複製 ${item.name}`); };

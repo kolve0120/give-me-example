@@ -43,7 +43,7 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
   }, []);
 
   const [quickSearch, setQuickSearch] = useState("");
-  const [selectedVendors, setSelectedVendors] = useState<string[]>([]);
+  const [selectedvenders, setSelectedvenders] = useState<string[]>([]);
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [selectedSeries, setSelectedSeries] = useState<string[]>([]);
   const [selectedRemarks, setSelectedRemarks] = useState<string[]>([]);
@@ -54,7 +54,7 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
   const getBaseFilteredProducts = useCallback((excludeField?: string) => {
     return products.filter((product) => {
       const conditions: Record<string, string[]> = {
-        vendor: selectedVendors,
+        vender: selectedvenders,
         model: selectedModels,
         series: selectedSeries,
         remark: selectedRemarks,
@@ -69,17 +69,17 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
         return values.includes(String(product[key as keyof typeof product]));
       });
     });
-  }, [products, selectedVendors, selectedModels, selectedSeries, selectedRemarks]);
+  }, [products, selectedvenders, selectedModels, selectedSeries, selectedRemarks]);
 
   // 動態唯一選項
-  const uniqueVendors = useMemo(() => {
+  const uniquevenders = useMemo(() => {
     if (isLoadingProducts) return [];
-    const filtered = getBaseFilteredProducts('vendor');
-    return Array.from(new Set(filtered.map(p => p.vendor || '')))
+    const filtered = getBaseFilteredProducts('vender');
+    return Array.from(new Set(filtered.map(p => p.vender || '')))
       .filter(Boolean)
       .sort((a, b) => {
-        const countA = filtered.filter(p => p.vendor === a).length;
-        const countB = filtered.filter(p => p.vendor === b).length;
+        const countA = filtered.filter(p => p.vender === a).length;
+        const countB = filtered.filter(p => p.vender === b).length;
         return countB - countA;
       });
   }, [getBaseFilteredProducts, isLoadingProducts]);
@@ -128,7 +128,7 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
         const search = quickSearch.toLowerCase();
         const matchesQuick =
           (product.model?.toLowerCase().includes(search) ?? false) ||
-          (product.vendor?.toLowerCase().includes(search) ?? false) ||
+          (product.vender?.toLowerCase().includes(search) ?? false) ||
           (product.series?.toLowerCase().includes(search) ?? false) ||
           (product.remark?.toLowerCase().includes(search) ?? false) ||
           (product.code?.toLowerCase().includes(search) ?? false);
@@ -137,7 +137,7 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
 
       // 所有篩選條件
       const conditions = [
-        selectedVendors.length === 0 || selectedVendors.includes(product.vendor),
+        selectedvenders.length === 0 || selectedvenders.includes(product.vender),
         selectedModels.length === 0 || selectedModels.includes(product.model),
         selectedSeries.length === 0 || selectedSeries.includes(product.series),
         selectedRemarks.length === 0 || selectedRemarks.includes(product.remark),
@@ -148,7 +148,7 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
   }, [
     products,
     quickSearch,
-    selectedVendors,
+    selectedvenders,
     selectedModels,
     selectedSeries,
     selectedRemarks,
@@ -157,7 +157,7 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
   // 清除所有篩選
   const clearAllFilters = useCallback(() => {
     setQuickSearch("");
-    setSelectedVendors([]);
+    setSelectedvenders([]);
     setSelectedModels([]);
     setSelectedSeries([]);
     setSelectedRemarks([]);
@@ -187,15 +187,15 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
     updateOrderData(tabId, {
       salesItems: [...salesItems, newItem]
     });
-
+    console.log("添加產品到訂單：", newItem);
     toast.success(`已添加 ${product.name} x ${quantity}`);
   }, [tabId, selectedCustomer, salesItems, updateOrderData]);
 
   // 活躍篩選數量
   const activeFilterCount = useMemo(() => 
-    selectedVendors.length + selectedModels.length + 
+    selectedvenders.length + selectedModels.length + 
     selectedSeries.length + selectedRemarks.length, 
-    [selectedVendors, selectedModels, selectedSeries, selectedRemarks]
+    [selectedvenders, selectedModels, selectedSeries, selectedRemarks]
   );
 
   return (
@@ -264,15 +264,15 @@ export const ProductSelect = ({ tabId }: ProductSelectProps) => {
                 setQuickSearch={setQuickSearch}
                 showAdvancedFilters={showAdvancedFilters}
                 setShowAdvancedFilters={setShowAdvancedFilters}
-                selectedVendors={selectedVendors}
-                setSelectedVendors={setSelectedVendors}
+                selectedvenders={selectedvenders}
+                setSelectedvenders={setSelectedvenders}
                 selectedModels={selectedModels}
                 setSelectedModels={setSelectedModels}
                 selectedSeries={selectedSeries}
                 setSelectedSeries={setSelectedSeries}
                 selectedRemarks={selectedRemarks}
                 setSelectedRemarks={setSelectedRemarks}
-                uniqueVendors={uniqueVendors}
+                uniquevenders={uniquevenders}
                 uniqueModels={uniqueModels}
                 uniqueSeries={uniqueSeries}
                 uniqueRemarks={uniqueRemarks}

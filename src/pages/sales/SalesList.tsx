@@ -51,7 +51,7 @@ export const SalesList = () => {
           serialNumber: order.orderInfo.serialNumber || order.id,
           date: order.orderInfo.date || new Date(order.timestamp).toLocaleDateString('zh-TW'),
           customer: order.customer?.name || order.orderInfo.customer?.name || '未知客戶',
-          productName: `${item.vendor} ${item.series}`,
+          productName: `${item.vender} ${item.series}`,
           productModel: item.model || '',
           quantity: item.quantity,
           priceDistribution: item.priceDistribution,

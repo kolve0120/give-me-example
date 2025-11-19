@@ -69,7 +69,7 @@ export const Dashboard = () => {
       salesItems: order.items,
       orderInfo: order.orderInfo,
     };
-    addEditOrderTab(serialNumber, orderData);
+    addEditOrderTab(orderData);
   };
 
   const handleCloseTab = (tabId: string, e: React.MouseEvent) => {

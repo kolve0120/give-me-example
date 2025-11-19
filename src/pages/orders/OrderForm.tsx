@@ -1,3 +1,4 @@
+// src/pages/orders/OrderForm.tsx
 // 獨立的訂單表單頁面組件
 import { useEffect } from "react";
 import { CustomerSelect } from "@/components/CustomerSelect";
@@ -37,7 +38,6 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
 
     // 補齊產品資料
     const enrichedItems = enrichSalesItems(orderData.salesItems);
-
     const orderToSave = {
       customer: orderData.selectedCustomer,
       items: enrichedItems,
@@ -46,30 +46,31 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
         status: orderData.orderInfo.status || "待處理"
       }
     };
-
+      console.log("準備送出的訂單資料:", orderToSave);
     try {
       let apiResult;
 
-      if (isEditMode && serialNumber) {
+      if (isEditMode) {
         // === 更新模式 ===
-        apiResult = await updateOrder(serialNumber, orderToSave);
+        apiResult = await updateOrder(orderToSave);
         toast.success(`訂單 ${serialNumber} 已更新`);
+
+        // updateOrder 回傳沒有 items，所以不更新 rowNumbers
+        console.log('更新訂單回傳:', apiResult);
       } else {
         // === 新增模式 ===
         apiResult = await createOrder(orderToSave);
         toast.success("訂單已新增");
-      }
+        // createOrder 回傳有 items 才更新 rowNumbers
+        if (apiResult && apiResult.length > 0) {
+          const orderResult = apiResult[0];
+          console.log('新增訂單回傳:', orderResult);
 
-      // === 更新 store 中的 rowNumber ===
-      if (apiResult && apiResult.length > 0) {
-        const orderResult = apiResult[0];
-        console.log('訂單回傳:', orderResult);
-        
-        // 更新 orderStore 中對應訂單的 items 的 rowNumber
-        useStore.getState().updateOrderItemRowNumbers(
-          orderResult.serialNumber,
-          orderResult.items
-        );
+          useStore.getState().updateOrderItemRowNumbers(
+            orderResult.serialNumber,
+            orderResult.items
+          );
+        }
       }
 
       // 重新載入訂單列表

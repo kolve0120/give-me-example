@@ -9,15 +9,15 @@ interface ProductSearchFiltersProps {
   setQuickSearch: (value: string) => void;
   showAdvancedFilters: boolean;
   setShowAdvancedFilters: (value: boolean) => void;
-  selectedVendors: string[];
-  setSelectedVendors: (value: string[]) => void;
+  selectedvenders: string[];
+  setSelectedvenders: (value: string[]) => void;
   selectedModels: string[];
   setSelectedModels: (value: string[]) => void; // ✅ 修正命名
   selectedSeries: string[];
   setSelectedSeries: (value: string[]) => void;
   selectedRemarks: string[];
   setSelectedRemarks: (value: string[]) => void;
-  uniqueVendors: string[];
+  uniquevenders: string[];
   uniqueModels: string[];
   uniqueSeries: string[];
   uniqueRemarks: string[];
@@ -30,15 +30,15 @@ export const ProductSearchFilters = ({
   setQuickSearch,
   showAdvancedFilters,
   setShowAdvancedFilters,
-  selectedVendors,
-  setSelectedVendors,
+  selectedvenders,
+  setSelectedvenders,
   selectedModels,
   setSelectedModels, // ✅ 修正命名
   selectedSeries,
   setSelectedSeries,
   selectedRemarks,
   setSelectedRemarks,
-  uniqueVendors,
+  uniquevenders,
   uniqueModels,
   uniqueSeries,
   uniqueRemarks,
@@ -70,15 +70,15 @@ export const ProductSearchFilters = ({
         >
           <Filter className="w-4 h-4 mr-2" />
           進階篩選
-          {selectedVendors.length + selectedModels.length + 
+          {selectedvenders.length + selectedModels.length + 
            selectedSeries.length + selectedRemarks.length > 0 && (
             <Badge variant="destructive" className="ml-2 h-4 w-4">
-              {selectedVendors.length + selectedModels.length + 
+              {selectedvenders.length + selectedModels.length + 
                selectedSeries.length + selectedRemarks.length}
             </Badge>
           )}
         </Button>
-        {(selectedVendors.length > 0 ||
+        {(selectedvenders.length > 0 ||
           selectedModels.length > 0 ||
           selectedSeries.length > 0 ||
           selectedRemarks.length > 0) && (
@@ -105,11 +105,11 @@ export const ProductSearchFilters = ({
           ) : (
             <>
               <MultiSelectDropdown
-                options={uniqueVendors}
-                selected={selectedVendors}
-                onChange={setSelectedVendors}
+                options={uniquevenders}
+                selected={selectedvenders}
+                onChange={setSelectedvenders}
                 label="廠商"
-                placeholder={`選擇廠商... (${uniqueVendors.length} 個可用)`}
+                placeholder={`選擇廠商... (${uniquevenders.length} 個可用)`}
                 disabled={isLoading}
               />
               <MultiSelectDropdown

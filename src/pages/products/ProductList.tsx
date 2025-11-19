@@ -13,7 +13,7 @@ export const ProductList = () => {
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.vender.toLowerCase().includes(searchQuery.toLowerCase()) ||
     product.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -61,7 +61,7 @@ export const ProductList = () => {
                   {filteredProducts.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell className="font-mono">{product.code}</TableCell>
-                      <TableCell>{product.vendor}</TableCell>
+                      <TableCell>{product.vender}</TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>{product.series}</TableCell>
                       <TableCell>

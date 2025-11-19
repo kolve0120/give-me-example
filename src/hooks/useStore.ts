@@ -85,8 +85,8 @@ export const useStore = create<StoreState>()(
             ...item,
             name: product?.name || item.name || item.code,
             model: product?.model || item.model || '',
-            vendor: product?.brand || '',
-            series: product?.seriesList || '',
+            vender: product?.vender || '',
+            series: product?.series || '',
             remark: item.remark || product?.colors || '',
           };
         });

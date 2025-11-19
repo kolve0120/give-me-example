@@ -12,7 +12,7 @@ export const ProductForm = () => {
   const [formData, setFormData] = useState({
     code: "",
     name: "",
-    vendor: "",
+    vender: "",
     series: "",
     model: "",
     remark: "",
@@ -52,7 +52,7 @@ export const ProductForm = () => {
 
   const handleSubmit = () => {
     // 驗證必填欄位
-    if (!formData.code || !formData.name || !formData.vendor) {
+    if (!formData.code || !formData.name || !formData.vender) {
       toast.error("請填寫產品代碼、名稱和廠商");
       return;
     }
@@ -74,7 +74,7 @@ export const ProductForm = () => {
     setFormData({
       code: "",
       name: "",
-      vendor: "",
+      vender: "",
       series: "",
       model: "",
       remark: "",
@@ -132,8 +132,8 @@ export const ProductForm = () => {
               <Label>廠商 *</Label>
               <Input 
                 placeholder="輸入廠商名稱" 
-                value={formData.vendor}
-                onChange={(e) => handleInputChange('vendor', e.target.value)}
+                value={formData.vender}
+                onChange={(e) => handleInputChange('vender', e.target.value)}
               />
             </div>
             <div className="space-y-2">
