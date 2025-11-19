@@ -165,7 +165,7 @@ export const OrderList = ({ onLoadOrder }: OrderListProps) => {
         console.log("出貨資料", shipmentData);
       });
       
-      await Promise.all(shipmentPromises);
+      //await Promise.all(shipmentPromises);
       toast.success(`成功出貨 ${shipments.length} 位客戶`);
       
       setShipmentInputs({});
