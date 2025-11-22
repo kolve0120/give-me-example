@@ -27,6 +27,7 @@ export const Dashboard = () => {
     tabs,
     activeTabId,
     addNewOrderTab,
+    addNewSaleTab,
     addEditOrderTab,
     addOrSwitchToTab,
     closeTab,
@@ -46,7 +47,8 @@ export const Dashboard = () => {
   const carouselRef = useRef<HTMLDivElement>(null);
 
   const menuConfig = [
-    { value: 'order-new' as const, label: "新增訂單", icon: ShoppingCart },
+    { value: 'order-new' as const, label: "新增訂單", icon: ShoppingCart, action: () => addNewOrderTab() },
+    { value: 'sale-new' as const, label: "新增銷售", icon: TrendingUp, action: () => addNewSaleTab() },
     { value: 'products' as const, label: "產品管理", icon: Package },
     { value: 'orders' as const, label: "訂單紀錄", icon: FileText },
     { value: 'sales-records' as const, label: "銷售紀錄", icon: TrendingUp },
@@ -54,11 +56,11 @@ export const Dashboard = () => {
     { value: 'payments' as const, label: "貨款查詢", icon: DollarSign },
   ];
 
-  const handleMenuClick = (value: typeof menuConfig[number]['value']) => {
-    if (value === 'order-new') {
-      addNewOrderTab();
+  const handleMenuClick = (menu: typeof menuConfig[number]) => {
+    if (menu.action) {
+      menu.action();
     } else {
-      addOrSwitchToTab(value, menuConfig.find(m => m.value === value)?.label || value);
+      addOrSwitchToTab(menu.value, menu.label);
     }
   };
 
@@ -116,7 +118,10 @@ export const Dashboard = () => {
     switch (tab.type) {
       case 'order-new':
       case 'order-edit':
-        return <OrderForm tabId={tab.id} />;
+        return <OrderForm tabId={tab.id} formType={tab.formType || 'order'} />;
+      case 'sale-new':
+      case 'sale-edit':
+        return <OrderForm tabId={tab.id} formType="sale" />;
       case 'products':
         return <ProductList />;
       case 'orders':
@@ -148,7 +153,7 @@ export const Dashboard = () => {
                   variant="outline"
                   size="sm"
                   className="flex items-center gap-2 whitespace-nowrap"
-                  onClick={() => handleMenuClick(menu.value)}
+                  onClick={() => handleMenuClick(menu)}
                 >
                   <menu.icon className="w-4 h-4" />
                   <span className="text-sm">{menu.label}</span>
@@ -233,7 +238,7 @@ export const Dashboard = () => {
                           ? "w-16 h-16 opacity-70" 
                           : "w-12 h-12 opacity-40"
                     )}
-                    onClick={() => handleMenuClick(menu.value)}
+                    onClick={() => handleMenuClick(menu)}
                   >
                     <div className={cn(
                       "w-full h-full rounded-full flex flex-col items-center justify-center gap-1 shadow-lg transition-all",

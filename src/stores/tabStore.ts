@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Customer, Product, SalesItem, OrderInfo } from '@/types';
 
-export type TabType = 'order-new' | 'order-edit' | 'products' | 'orders' | 'sales-records' | 'purchase' | 'payments';
+export type TabType = 'order-new' | 'order-edit' | 'sale-new' | 'sale-edit' | 'products' | 'orders' | 'sales-records' | 'purchase' | 'payments';
 
 export interface OrderTabData {
   selectedCustomer: Customer | null;
@@ -16,16 +16,19 @@ export interface TabInfo {
   type: TabType;
   label: string;
   orderData?: OrderTabData;
-  orderSerialNumber?: string; // 用於編輯訂單時的唯一識別
+  orderSerialNumber?: string;
+  formType?: 'order' | 'sale';
 }
 
 interface TabStoreState {
   tabs: TabInfo[];
   activeTabId: string | null;
   orderCounter: number;
+  saleCounter: number;
 
   // Tab 管理
   addNewOrderTab: () => string;
+  addNewSaleTab: () => string;
   addEditOrderTab: (order: any) => string;
   addOrSwitchToTab: (type: TabType, label: string) => void;
   closeTab: (tabId: string) => void;
@@ -49,12 +52,25 @@ const getInitialOrderData = (): OrderTabData => ({
   },
 });
 
+const getInitialSaleData = (): OrderTabData => ({
+  selectedCustomer: null,
+  salesItems: [],
+  orderInfo: {
+    date: new Date().toISOString().split("T")[0],
+    serialNumber: "",
+    paperSerialNumber: "",
+    customer: undefined,
+    status: "已完成",
+  },
+});
+
 export const useTabStore = create<TabStoreState>()(
   persist(
     (set, get) => ({
-      tabs: [{ id: 'order-1', type: 'order-new', label: '新增訂單 #1', orderData: getInitialOrderData() }],
+      tabs: [{ id: 'order-1', type: 'order-new', label: '新增訂單 #1', orderData: getInitialOrderData(), formType: 'order' }],
       activeTabId: 'order-1',
       orderCounter: 1,
+      saleCounter: 0,
 
       addNewOrderTab: () => {
         const { tabs, orderCounter } = get();
@@ -65,6 +81,7 @@ export const useTabStore = create<TabStoreState>()(
           type: 'order-new',
           label: `新增訂單 #${newCounter}`,
           orderData: getInitialOrderData(),
+          formType: 'order',
         };
 
         set({
@@ -76,12 +93,33 @@ export const useTabStore = create<TabStoreState>()(
         return newTabId;
       },
 
+      addNewSaleTab: () => {
+        const { tabs, saleCounter } = get();
+        const newCounter = saleCounter + 1;
+        const newTabId = `sale-${newCounter}`;
+        const newTab: TabInfo = {
+          id: newTabId,
+          type: 'sale-new',
+          label: `新增銷售 #${newCounter}`,
+          orderData: getInitialSaleData(),
+          formType: 'sale',
+        };
+
+        set({
+          tabs: [...tabs, newTab],
+          activeTabId: newTabId,
+          saleCounter: newCounter,
+        });
+
+        return newTabId;
+      },
+
       addEditOrderTab: (order) => {
         const { tabs } = get();
         const serialNumber = order.orderInfo.serialNumber;
         // 檢查是否已存在相同單號的 tab
         const existingTab = tabs.find(
-          t => t.type === 'order-edit' && t.orderSerialNumber === serialNumber
+          t => (t.type === 'order-edit' || t.type === 'sale-edit') && t.orderSerialNumber === serialNumber
         );
 
         if (existingTab) {
@@ -95,7 +133,7 @@ export const useTabStore = create<TabStoreState>()(
         const orderData: OrderTabData = {
           selectedCustomer: order.selectedCustomer,
           salesItems: order.salesItems.map((item: any, idx: number) => ({
-            id: item.id || `${item.code}-${idx}`,  // 確保有 id
+            id: item.id || `${item.code}-${idx}`,
             code: item.code,
             name: item.name,
             model: item.model,
@@ -106,20 +144,20 @@ export const useTabStore = create<TabStoreState>()(
             totalPrice: item.totalPrice,
             remark: item.remark,
             rowNumber: item.rowNumber,
-            time: item.time || Date.now(),  // 確保有 time
+            time: item.time || Date.now(),
           })),
           orderInfo: order.orderInfo,
         };
 
-        
- 
         console.log("訂單編輯資料",orderData)
+        const isOrderType = serialNumber.startsWith('OD');
         const newTab: TabInfo = {
           id: newTabId,
-          type: 'order-edit',
+          type: isOrderType ? 'order-edit' : 'sale-edit',
           label: `編輯 ${serialNumber}`,
           orderData,
           orderSerialNumber: serialNumber,
+          formType: isOrderType ? 'order' : 'sale',
         };
 
         set({
@@ -134,7 +172,7 @@ export const useTabStore = create<TabStoreState>()(
         const { tabs } = get();
         
         // 對於非訂單類型的 tab，檢查是否已存在
-        if (type !== 'order-new' && type !== 'order-edit') {
+        if (!['order-new', 'order-edit', 'sale-new', 'sale-edit'].includes(type)) {
           const existingTab = tabs.find(t => t.type === type);
           if (existingTab) {
             set({ activeTabId: existingTab.id });
@@ -167,6 +205,7 @@ export const useTabStore = create<TabStoreState>()(
             type: 'order-new',
             label: '新增訂單 #1',
             orderData: getInitialOrderData(),
+            formType: 'order',
           };
           set({ tabs: [defaultTab], activeTabId: defaultTab.id, orderCounter: 1 });
           return;
@@ -203,14 +242,17 @@ export const useTabStore = create<TabStoreState>()(
 
       clearOrderData: (tabId) => {
         const { tabs } = get();
-        const updatedTabs = tabs.map(tab => {
-          if (tab.id === tabId) {
+        const tab = tabs.find(t => t.id === tabId);
+        const initialData = tab?.formType === 'sale' ? getInitialSaleData() : getInitialOrderData();
+        
+        const updatedTabs = tabs.map(t => {
+          if (t.id === tabId) {
             return {
-              ...tab,
-              orderData: getInitialOrderData(),
+              ...t,
+              orderData: initialData,
             };
           }
-          return tab;
+          return t;
         });
         set({ tabs: updatedTabs });
       },
@@ -221,6 +263,7 @@ export const useTabStore = create<TabStoreState>()(
         tabs: state.tabs,
         activeTabId: state.activeTabId,
         orderCounter: state.orderCounter,
+        saleCounter: state.saleCounter,
       }),
     }
   )

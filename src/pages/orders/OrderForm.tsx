@@ -1,27 +1,30 @@
 // src/pages/orders/OrderForm.tsx
-// 獨立的訂單表單頁面組件
-import { useEffect } from "react";
+// 獨立的訂單/銷售表單頁面組件
+import { useState } from "react";
 import { CustomerSelect } from "@/components/CustomerSelect";
 import { ProductSelect } from "@/components/ProductSelect";
 import { SalesProductList } from "@/components/SalesProductList";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTabStore } from "@/stores/tabStore";
 import { useStore } from "@/hooks/useStore";
-import { updateOrder,createOrder , } from "@/services/googleSheetsApi";
+import { updateOrder, createOrder } from "@/services/googleSheetsApi";
 
 interface OrderFormProps {
   tabId: string;
+  formType?: 'order' | 'sale';
 }
 
-export const OrderForm = ({ tabId }: OrderFormProps) => {
+export const OrderForm = ({ tabId, formType = 'order' }: OrderFormProps) => {
   const { getOrderData, updateOrderData, clearOrderData, closeTab, tabs } = useTabStore();
   const { enrichSalesItems } = useStore();
   const orderData = getOrderData(tabId);
   const currentTab = tabs.find(t => t.id === tabId);
-  const isEditMode = currentTab?.type === 'order-edit';
+  const isEditMode = currentTab?.type === 'order-edit' || currentTab?.type === 'sale-edit';
   const serialNumber = currentTab?.orderSerialNumber;
+  const [mode, setMode] = useState<'order' | 'sale'>(formType);
   const handleSubmitOrder = async () => {
     if (!orderData?.selectedCustomer) {
       toast.error("請先選擇客戶");
@@ -102,6 +105,25 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
 
   return (
     <div className="space-y-6">
+      {/* 模式切換 */}
+      <div className="flex items-center gap-2 bg-muted/50 p-2 rounded-lg w-fit">
+        <span className="text-sm font-medium">表單類型：</span>
+        <Badge 
+          variant={mode === 'order' ? 'default' : 'outline'}
+          className="cursor-pointer"
+          onClick={() => setMode('order')}
+        >
+          訂單
+        </Badge>
+        <Badge 
+          variant={mode === 'sale' ? 'default' : 'outline'}
+          className="cursor-pointer"
+          onClick={() => setMode('sale')}
+        >
+          銷售
+        </Badge>
+      </div>
+
       <CustomerSelect tabId={tabId} />
       <SalesProductList tabId={tabId} />
       <ProductSelect tabId={tabId} />
@@ -120,7 +142,7 @@ export const OrderForm = ({ tabId }: OrderFormProps) => {
           onClick={handleSubmitOrder}
         >
           <Save className="w-4 h-4 mr-2" />
-          提交訂單
+          {mode === 'order' ? '提交訂單' : '提交銷售'}
         </Button>
       </div>
     </div>

@@ -50,44 +50,51 @@ export const ProductForm = () => {
     ));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // 驗證必填欄位
     if (!formData.code || !formData.name || !formData.vender) {
       toast.error("請填寫產品代碼、名稱和廠商");
       return;
     }
 
-    // 暫存到 localStorage
-    const productData = {
-      ...formData,
-      tableEntries,
-      timestamp: new Date().toISOString(),
-    };
-    
-    const savedProducts = JSON.parse(localStorage.getItem('pendingProducts') || '[]');
-    savedProducts.push(productData);
-    localStorage.setItem('pendingProducts', JSON.stringify(savedProducts));
-    
-    toast.success("產品已暫存至本地");
-    
-    // 清空表單
-    setFormData({
-      code: "",
-      name: "",
-      vender: "",
-      series: "",
-      model: "",
-      remark: "",
-      priceDistribution: "",
-      priceRetail: "",
-      state: "啟用中",
-      barcode: "",
-      systemCode: "",
-      tableTitle: "",
-      tableRowTitle: "",
-      tableColTitle: "",
-    });
-    setTableEntries([{ title: "", vender: "", remark: "" }]);
+    try {
+      // TODO: 實作 API 新增產品功能
+      // await createProduct(formData);
+      
+      // 暫時使用 localStorage
+      const productData = {
+        ...formData,
+        tableEntries,
+        timestamp: new Date().toISOString(),
+      };
+      
+      const savedProducts = JSON.parse(localStorage.getItem('pendingProducts') || '[]');
+      savedProducts.push(productData);
+      localStorage.setItem('pendingProducts', JSON.stringify(savedProducts));
+      
+      toast.success("產品已儲存（待實作 API 串接）");
+      
+      // 清空表單
+      setFormData({
+        code: "",
+        name: "",
+        vender: "",
+        series: "",
+        model: "",
+        remark: "",
+        priceDistribution: "",
+        priceRetail: "",
+        state: "啟用中",
+        barcode: "",
+        systemCode: "",
+        tableTitle: "",
+        tableRowTitle: "",
+        tableColTitle: "",
+      });
+      setTableEntries([{ title: "", vender: "", remark: "" }]);
+    } catch (error: any) {
+      toast.error(error.message || "儲存失敗");
+    }
   };
 
   return (

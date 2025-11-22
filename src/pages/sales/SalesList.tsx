@@ -180,7 +180,7 @@ export const SalesList = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.thisMonthSales}</div>
+            <div className="text-2xl font-bold text-primary">{stats.thisMonthSales}</div>
           </CardContent>
         </Card>
         <Card>
@@ -191,7 +191,7 @@ export const SalesList = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-primary">
               ${stats.totalAmount.toLocaleString()}
             </div>
           </CardContent>
@@ -244,31 +244,32 @@ export const SalesList = () => {
                   <AccordionItem
                     key={group.customer}
                     value={group.customer}
-                    className="border-2 rounded-lg overflow-hidden shadow-sm border-primary/20 bg-primary/5"
+                    className="border rounded-lg overflow-hidden shadow-sm"
                   >
-                    <AccordionTrigger className="px-4 py-3 bg-primary/10 hover:bg-primary/20">
+                    <AccordionTrigger className="px-4 py-3 hover:bg-muted/50">
                       <div className="flex justify-between w-full pr-4 items-center">
                         <div className="flex items-center gap-2">
                           <Checkbox
                             checked={groupAllSelected}
                             onCheckedChange={(checked) => handleSelectAll(group, Boolean(checked))}
+                            onClick={(e) => e.stopPropagation()}
                           />
-                          <span className="font-semibold text-lg">{group.customer}</span>
+                          <span className="font-semibold text-base">{group.customer}</span>
                         </div>
                         <div className="flex gap-6 text-sm text-muted-foreground">
-                          <span>總數量：<strong>{group.totalQty}</strong></span>
+                          <span>總數量：<strong className="text-foreground">{group.totalQty}</strong></span>
                           <span>
-                            總金額：<strong>NT$ {group.totalAmt.toLocaleString()}</strong>
+                            總金額：<strong className="text-foreground">NT$ {group.totalAmt.toLocaleString()}</strong>
                           </span>
                         </div>
                       </div>
                     </AccordionTrigger>
 
-                    <AccordionContent className="bg-background">
+                    <AccordionContent className="px-0">
                       <Table>
                         <TableHeader>
-                          <TableRow className="bg-muted/50">
-                            <TableHead className="w-10"></TableHead>
+                          <TableRow>
+                            <TableHead className="w-12"></TableHead>
                             <TableHead>訂單編號</TableHead>
                             <TableHead>日期</TableHead>
                             <TableHead>產品名稱</TableHead>
@@ -276,7 +277,7 @@ export const SalesList = () => {
                             <TableHead className="text-right">數量</TableHead>
                             <TableHead className="text-right">單價</TableHead>
                             <TableHead className="text-right">小計</TableHead>
-                            <TableHead>狀態</TableHead>
+                            <TableHead className="text-center">狀態</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -292,19 +293,19 @@ export const SalesList = () => {
                                     }
                                   />
                                 </TableCell>
-                                <TableCell className="font-mono">{item.serialNumber}</TableCell>
-                                <TableCell>{item.date}</TableCell>
-                                <TableCell>{item.productName}</TableCell>
-                                <TableCell>{item.productModel}</TableCell>
+                                <TableCell className="font-mono text-sm">{item.serialNumber}</TableCell>
+                                <TableCell className="text-sm">{item.date}</TableCell>
+                                <TableCell className="font-medium">{item.productName}</TableCell>
+                                <TableCell className="text-sm text-muted-foreground">{item.productModel}</TableCell>
                                 <TableCell className="text-right">{item.quantity}</TableCell>
-                                <TableCell className="text-right">
+                                <TableCell className="text-right text-sm">
                                   ${item.priceDistribution.toLocaleString()}
                                 </TableCell>
                                 <TableCell className="text-right font-semibold">
                                   ${item.totalPrice.toLocaleString()}
                                 </TableCell>
-                                <TableCell>
-                                  <Badge variant="outline">{item.status}</Badge>
+                                <TableCell className="text-center">
+                                  <Badge variant="outline" className="text-xs">{item.status}</Badge>
                                 </TableCell>
                               </TableRow>
                             );
