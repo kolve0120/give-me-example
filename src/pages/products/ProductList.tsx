@@ -59,7 +59,7 @@ export const ProductList = () => {
                 </TableHeader>
                 <TableBody>
                   {filteredProducts.map((product) => (
-                    <TableRow key={product.code}>
+                    <TableRow key={product.id}>
                       <TableCell className="font-mono">{product.code}</TableCell>
                       <TableCell>{product.vender}</TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>

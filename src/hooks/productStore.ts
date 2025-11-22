@@ -34,7 +34,7 @@ export const createProductSlice: StateCreator<ProductSlice> = (set, get) => ({
 
   addSelectedProduct: (product) => {
     const { selectedProducts } = get();
-    const exists = selectedProducts.find(p => p.code === product.code);
+    const exists = selectedProducts.find(p => p.id === product.id);
     if (!exists) {
       set({ selectedProducts: [...selectedProducts, product] });
     }
