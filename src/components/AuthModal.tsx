@@ -28,26 +28,20 @@ export const AuthModal = ({ open, onClose }: AuthModalProps) => {
     e.preventDefault();
     
     if (mode === 'login') {
-      const success = await login({ username, password });
-      if (success) {
+      const result = await login(email, password);
+      if (result.success) {
         toast.success('登入成功');
         onClose();
       } else {
-        toast.error('登入失敗，請檢查帳號密碼');
+        toast.error(result.error || '登入失敗，請檢查帳號密碼');
       }
     } else {
-      const success = await register({
-        username,
-        email,
-        password,
-        role,
-        customerCode: role === 'customer' ? customerCode : undefined,
-      });
-      if (success) {
+      const result = await register(username, email, password, role, role === 'customer' ? customerCode : undefined);
+      if (result.success) {
         toast.success('註冊成功');
         onClose();
       } else {
-        toast.error('註冊失敗');
+        toast.error(result.error || '註冊失敗');
       }
     }
   };
@@ -75,17 +69,7 @@ export const AuthModal = ({ open, onClose }: AuthModalProps) => {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="username">帳號</Label>
-            <Input
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-
-          {mode === 'register' && (
+          {mode === 'login' ? (
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -96,6 +80,28 @@ export const AuthModal = ({ open, onClose }: AuthModalProps) => {
                 required
               />
             </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="username">帳號</Label>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </>
           )}
 
           <div className="space-y-2">

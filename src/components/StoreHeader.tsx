@@ -2,6 +2,10 @@ import { Card } from "@/components/ui/card";
 import { useStore } from "@/hooks/useStore";
 import { useOrderFormStore } from "@/stores/orderFormStore";
 import { StoreControls } from "./StoreControls";
+import { Button } from "@/components/ui/button";
+import { LogOut, User } from "lucide-react";
+import { useState } from "react";
+import { AuthModal } from "./AuthModal";
 
 export const StoreHeader = () => {
   const {
@@ -10,6 +14,13 @@ export const StoreHeader = () => {
     getTotalAmount,
     getTotalQuantity
   } = useOrderFormStore();
+
+  const { user, isAuthenticated, logout } = useStore();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <Card className="card-elegant p-4 mb-6 animate-fade-in">
@@ -45,9 +56,32 @@ export const StoreHeader = () => {
           )}
         </div>
 
-        {/* 使用獨立的 StoreControls 元件來顯示操作按鈕 */}
-        <StoreControls />
+        {/* 認證狀態與控制按鈕 */}
+        <div className="flex items-center gap-2">
+          {isAuthenticated && user ? (
+            <>
+              <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-secondary/20 text-sm">
+                <User className="h-4 w-4" />
+                <span>{user.username}</span>
+                {user.roles.includes('admin') && (
+                  <span className="ml-1 px-2 py-0.5 rounded text-xs bg-primary text-primary-foreground">管理員</span>
+                )}
+              </div>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-1" />
+                登出
+              </Button>
+            </>
+          ) : (
+            <Button variant="default" size="sm" onClick={() => setShowAuthModal(true)}>
+              登入 / 註冊
+            </Button>
+          )}
+          <StoreControls />
+        </div>
       </div>
+
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </Card>
   );
 };

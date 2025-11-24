@@ -1,99 +1,190 @@
 // src/hooks/authStore.ts
 import { StateCreator } from 'zustand';
-import { User, LoginCredentials, RegisterData } from '@/types/auth';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  customerCode?: string;
+  roles: string[];
+}
 
 export interface AuthSlice {
-  user: User | null;
+  user: UserProfile | null;
   isAuthenticated: boolean;
   isAuthLoading: boolean;
   
   // Actions
-  login: (credentials: LoginCredentials) => Promise<boolean>;
-  register: (data: RegisterData) => Promise<boolean>;
-  logout: () => void;
-  checkAuth: () => void;
-  updateUser: (user: User) => void;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (username: string, email: string, password: string, role: 'admin' | 'customer', customerCode?: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
+  getUserRoles: () => Promise<string[]>;
+  hasRole: (role: string) => boolean;
+  isAdmin: () => boolean;
 }
 
-export const createAuthSlice: StateCreator<AuthSlice> = (set) => ({
+export const createAuthSlice: StateCreator<AuthSlice> = (set, get) => ({
   user: null,
   isAuthenticated: false,
-  isAuthLoading: false,
+  isAuthLoading: true,
 
-  login: async (credentials) => {
+  login: async (email, password) => {
     set({ isAuthLoading: true });
     try {
-      // TODO: 實作 API 登入
-      // 暫時使用假資料
-      const mockUser: User = {
-        id: '1',
-        username: credentials.username,
-        email: `${credentials.username}@example.com`,
-        role: credentials.username === 'admin' ? 'admin' : 'customer',
-        customerCode: credentials.username === 'admin' ? undefined : 'C001',
-        permissions: {
-          canViewAllOrders: credentials.username === 'admin',
-          canEditAllOrders: credentials.username === 'admin',
-          canManageUsers: credentials.username === 'admin',
-        },
-      };
-      
-      set({ user: mockUser, isAuthenticated: true, isAuthLoading: false });
-      localStorage.setItem('auth-user', JSON.stringify(mockUser));
-      return true;
-    } catch (error) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // 獲取用戶資料和角色
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id);
+
+        const roles = userRoles?.map(r => r.role) || [];
+
+        const userProfile: UserProfile = {
+          id: data.user.id,
+          username: profile?.username || data.user.email?.split('@')[0] || '',
+          email: data.user.email || '',
+          customerCode: profile?.customer_code,
+          roles,
+        };
+
+        set({ user: userProfile, isAuthenticated: true, isAuthLoading: false });
+        return { success: true };
+      }
+
+      set({ isAuthLoading: false });
+      return { success: false, error: '登入失敗' };
+    } catch (error: any) {
       console.error('Login failed:', error);
       set({ isAuthLoading: false });
-      return false;
+      return { success: false, error: error.message || '登入失敗' };
     }
   },
 
-  register: async (data) => {
+  register: async (username, email, password, role, customerCode) => {
     set({ isAuthLoading: true });
     try {
-      // TODO: 實作 API 註冊
-      const newUser: User = {
-        id: Date.now().toString(),
-        username: data.username,
-        email: data.email,
-        role: data.role,
-        customerCode: data.customerCode,
-        permissions: {
-          canViewAllOrders: data.role === 'admin',
-          canEditAllOrders: data.role === 'admin',
-          canManageUsers: data.role === 'admin',
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+            role,
+            customer_code: customerCode,
+          },
+          emailRedirectTo: `${window.location.origin}/`,
         },
-      };
-      
-      set({ user: newUser, isAuthenticated: true, isAuthLoading: false });
-      localStorage.setItem('auth-user', JSON.stringify(newUser));
-      return true;
-    } catch (error) {
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // 註冊後自動登入（因為啟用了 auto-confirm）
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', data.user.id);
+
+        const roles = userRoles?.map(r => r.role) || [role];
+
+        const userProfile: UserProfile = {
+          id: data.user.id,
+          username: profile?.username || username,
+          email: data.user.email || email,
+          customerCode: profile?.customer_code || customerCode,
+          roles,
+        };
+
+        set({ user: userProfile, isAuthenticated: true, isAuthLoading: false });
+        return { success: true };
+      }
+
+      set({ isAuthLoading: false });
+      return { success: false, error: '註冊失敗' };
+    } catch (error: any) {
       console.error('Register failed:', error);
       set({ isAuthLoading: false });
-      return false;
+      return { success: false, error: error.message || '註冊失敗' };
     }
   },
 
-  logout: () => {
+  logout: async () => {
+    await supabase.auth.signOut();
     set({ user: null, isAuthenticated: false });
-    localStorage.removeItem('auth-user');
   },
 
-  checkAuth: () => {
-    const saved = localStorage.getItem('auth-user');
-    if (saved) {
-      try {
-        const user = JSON.parse(saved);
-        set({ user, isAuthenticated: true });
-      } catch (e) {
-        console.error('Failed to parse saved user:', e);
+  checkAuth: async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', session.user.id);
+
+        const roles = userRoles?.map(r => r.role) || [];
+
+        const userProfile: UserProfile = {
+          id: session.user.id,
+          username: profile?.username || session.user.email?.split('@')[0] || '',
+          email: session.user.email || '',
+          customerCode: profile?.customer_code,
+          roles,
+        };
+
+        set({ user: userProfile, isAuthenticated: true, isAuthLoading: false });
+      } else {
+        set({ user: null, isAuthenticated: false, isAuthLoading: false });
       }
+    } catch (error) {
+      console.error('Failed to check auth:', error);
+      set({ user: null, isAuthenticated: false, isAuthLoading: false });
     }
   },
 
-  updateUser: (user) => {
-    set({ user });
-    localStorage.setItem('auth-user', JSON.stringify(user));
+  getUserRoles: async () => {
+    const state = get();
+    if (!state.user) return [];
+    return state.user.roles;
+  },
+
+  hasRole: (role) => {
+    const state = get();
+    return state.user?.roles.includes(role) || false;
+  },
+
+  isAdmin: () => {
+    const state = get();
+    return state.user?.roles.includes('admin') || false;
   },
 });
