@@ -7,10 +7,18 @@ import { Dashboard } from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import { UserManagement } from "./pages/UserManagement";
 import { CombinedQuery } from "./pages/CombinedQuery";
+import { useStore } from "./hooks/useStore";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  const { checkAuth } = useStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
