@@ -177,7 +177,7 @@ export const ProductTableView = ({
                   <TableBody>
                     {rows.map((row) => (
                       <TableRow key={row} className="hover:bg-muted/20">
-                        <TableCell className="border font-medium text-center bg-muted/10">
+                        <TableCell className="border font-xs text-center bg-muted/10">
                           {row}
                         </TableCell>
                         {cols.map((col) => {
