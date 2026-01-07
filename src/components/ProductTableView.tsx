@@ -129,7 +129,7 @@ export const ProductTableView = ({
 
   return (
     <FormProvider {...methods}>
-      <div className="space-y-4">
+      <div className="space-y-4 sm:tetx-sm">
         {/* 頂部控制列 */}
         <div className="flex items-center justify-between sticky top-0 bg-background z-20 py-3 px-4 border-b shadow-sm">
           <div className="flex items-center gap-4">
