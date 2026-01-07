@@ -31,16 +31,16 @@ export const ProductGridView = ({
           className="hover:shadow-lg transition-shadow cursor-pointer"
           onClick={() => onSelectProduct(product, 1)}
         >
-          <CardContent className="p-4">
+          <CardContent className="p-2">
             <div className="space-y-2">
               <div className="flex items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h4 className="font-medium text-xs">
+                    <h2 className="font-medium text-xs">
                       {product.vender} • {product.series}
-                    </h4>
+                    </h2>
                   </div>
-                  <p className="text-s font-bold text-muted-foreground mt-1">
+                  <p className="text-xs font-bold text-muted-foreground mt-1">
                     {product.model}
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -49,11 +49,11 @@ export const ProductGridView = ({
                 </div>
               </div>
               <div className="flex items-center justify-between pt-2 border-t">
-                <span className="text-lg font-bold text-primary">
+                <span className="text-x font-bold text-primary">
                   ${product.priceDistribution}
                 </span>
                 <Button size="sm" variant="secondary">
-                  <ShoppingCart className="w-4 h-4 mr-1" />
+                  <ShoppingCart className="w-2 h-2 mr-1" />
                   加入
                 </Button>
               </div>
